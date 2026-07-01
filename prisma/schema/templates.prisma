@@ -1,0 +1,25 @@
+// ── Module: templates ── reusable blueprints for cards and boards.
+// Blueprints are JSON payloads so new template capabilities are additive
+// and never require schema changes.
+
+model CardTemplate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  /// { title, description?, labels?: [{name,color}], checklists?: [{title, items: string[]}] }
+  payload   Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("card_templates")
+}
+
+model BoardTemplate {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  /// { lists: string[], labels?: [{name,color}], background?: string }
+  payload   Json
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("board_templates")
+}

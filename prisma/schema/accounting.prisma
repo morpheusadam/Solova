@@ -1,0 +1,206 @@
+// ── Module: accounting ── double-entry core: chart of accounts, immutable
+// journal entries with balanced debit/credit lines, plus the business
+// documents (invoices, payments, expenses) that auto-post to the journal.
+//
+// Integrity (enforced in SQL, see the initial migration):
+//  * journal lines: debit_minor >= 0, credit_minor >= 0, never both > 0
+//  * per entry SUM(debits) = SUM(credits) — deferred constraint trigger
+//  * journal_entries / journal_lines are append-only (update/delete blocked
+//    by triggers; corrections are reversing entries)
+// Money is BIGINT minor units — never float.
+
+enum AccountType {
+  ASSET
+  LIABILITY
+  EQUITY
+  REVENUE
+  EXPENSE
+
+  @@map("account_type")
+}
+
+enum NormalBalance {
+  DEBIT
+  CREDIT
+
+  @@map("normal_balance")
+}
+
+model Account {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  code          String        @unique
+  name          String
+  type          AccountType
+  parentId      String?       @map("parent_id") @db.Uuid
+  parent        Account?      @relation("AccountTree", fields: [parentId], references: [id], onDelete: Restrict)
+  children      Account[]     @relation("AccountTree")
+  normalBalance NormalBalance @map("normal_balance")
+  isActive      Boolean       @default(true) @map("is_active")
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  journalLines JournalLine[]
+  expenses     Expense[]
+
+  @@index([type])
+  @@map("accounts")
+}
+
+enum JournalReferenceType {
+  MANUAL
+  INVOICE
+  PAYMENT
+  EXPENSE
+
+  @@map("journal_reference_type")
+}
+
+model JournalEntry {
+  id                String               @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entryDate         DateTime             @map("entry_date") @db.Date
+  memo              String?
+  referenceType     JournalReferenceType @map("reference_type")
+  referenceId       String?              @map("reference_id") @db.Uuid
+  companyId         String?              @map("company_id") @db.Uuid
+  company           Company?             @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  isPosted          Boolean              @default(true) @map("is_posted")
+  reversedByEntryId String?              @map("reversed_by_entry_id") @db.Uuid
+  reversedBy        JournalEntry?        @relation("Reversal", fields: [reversedByEntryId], references: [id], onDelete: SetNull)
+  reverses          JournalEntry[]       @relation("Reversal")
+  createdAt         DateTime             @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  lines JournalLine[]
+
+  @@index([entryDate])
+  @@index([companyId])
+  @@index([referenceType, referenceId])
+  @@map("journal_entries")
+}
+
+model JournalLine {
+  id          String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  entryId     String       @map("entry_id") @db.Uuid
+  entry       JournalEntry @relation(fields: [entryId], references: [id], onDelete: Restrict)
+  accountId   String       @map("account_id") @db.Uuid
+  account     Account      @relation(fields: [accountId], references: [id], onDelete: Restrict)
+  debitMinor  BigInt       @default(0) @map("debit_minor")
+  creditMinor BigInt       @default(0) @map("credit_minor")
+  createdAt   DateTime     @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([entryId])
+  @@index([accountId])
+  @@map("journal_lines")
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PAID
+  PARTIAL
+  OVERDUE
+  VOID
+
+  @@map("invoice_status")
+}
+
+model Invoice {
+  id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId     String        @map("company_id") @db.Uuid
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  contractId    String?       @map("contract_id") @db.Uuid
+  contract      Contract?     @relation(fields: [contractId], references: [id], onDelete: SetNull)
+  projectId     String?       @map("project_id") @db.Uuid
+  project       Project?      @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  invoiceNumber String        @unique @map("invoice_number")
+  issueDate     DateTime      @map("issue_date") @db.Date
+  dueDate       DateTime?     @map("due_date") @db.Date
+  status        InvoiceStatus @default(DRAFT)
+  subtotalMinor BigInt        @default(0) @map("subtotal_minor")
+  taxMinor      BigInt        @default(0) @map("tax_minor")
+  totalMinor    BigInt        @default(0) @map("total_minor")
+  currencyCode  String        @map("currency_code") @db.Char(3)
+  notes         String?
+  createdAt     DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt     DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lines    InvoiceLine[]
+  payments Payment[]
+
+  @@index([companyId])
+  @@index([status])
+  @@index([issueDate])
+  @@map("invoices")
+}
+
+enum InvoiceLineSource {
+  MANUAL
+  TIME_ENTRY
+  TASK
+  PROJECT
+
+  @@map("invoice_line_source")
+}
+
+model InvoiceLine {
+  id             String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  invoiceId      String             @map("invoice_id") @db.Uuid
+  invoice        Invoice            @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  description    String
+  quantity       Decimal            @default(1) @db.Decimal(12, 2)
+  unitPriceMinor BigInt             @map("unit_price_minor")
+  amountMinor    BigInt             @map("amount_minor")
+  sourceType     InvoiceLineSource? @map("source_type")
+  sourceId       String?            @map("source_id") @db.Uuid
+  createdAt      DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([invoiceId])
+  @@map("invoice_lines")
+}
+
+enum PaymentMethod {
+  BANK
+  CASH
+  CARD
+  CRYPTO
+  OTHER
+
+  @@map("payment_method")
+}
+
+model Payment {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String        @map("company_id") @db.Uuid
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  invoiceId   String?       @map("invoice_id") @db.Uuid
+  invoice     Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  amountMinor BigInt        @map("amount_minor")
+  paidAt      DateTime      @map("paid_at") @db.Date
+  method      PaymentMethod @default(BANK)
+  reference   String?
+  notes       String?
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([companyId])
+  @@index([paidAt])
+  @@index([invoiceId])
+  @@map("payments")
+}
+
+model Expense {
+  id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId         String?  @map("company_id") @db.Uuid
+  company           Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  categoryAccountId String   @map("category_account_id") @db.Uuid
+  categoryAccount   Account  @relation(fields: [categoryAccountId], references: [id], onDelete: Restrict)
+  description       String
+  amountMinor       BigInt   @map("amount_minor")
+  spentAt           DateTime @map("spent_at") @db.Date
+  billable          Boolean  @default(false)
+  receiptUrl        String?  @map("receipt_url")
+  createdAt         DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([companyId])
+  @@index([spentAt])
+  @@index([categoryAccountId])
+  @@map("expenses")
+}

@@ -1,0 +1,30 @@
+# dependencies
+node_modules/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# production
+build/
+
+# env & secrets
+.env
+.env.*.local
+
+# database
+*.sqlite
+
+# uploads (runtime data)
+data/
+
+# misc
+.DS_Store
+*.pem
+npm-debug.log*
+.pnpm-debug.log*
+tsconfig.tsbuildinfo
+
+# tests
+coverage/

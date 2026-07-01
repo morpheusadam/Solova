@@ -1,9 +1,41 @@
 services:
-  solova:
-    image: nginx:alpine
+  app:
+    build: .
     container_name: solova
     ports:
-      - "127.0.0.1:8090:80"
+      - "127.0.0.1:8090:3000"
+    environment:
+      DATABASE_URL: postgresql://freelanceos:9f5aecfe570feeaf97ca31fce5521efa@db:5432/freelanceos
+      AUTH_SECRET: ${AUTH_SECRET}
+      AUTH_URL: https://solova.lavzen.com
+      AUTH_TRUST_HOST: "true"
+      UPLOADS_DIR: /data/uploads
     volumes:
-      - ./html:/usr/share/nginx/html:ro
+      - uploads:/data/uploads
+    depends_on:
+      db:
+        condition: service_healthy
     restart: unless-stopped
+
+  db:
+    image: postgres:16-alpine
+    container_name: solova-db
+    environment:
+      POSTGRES_USER: freelanceos
+      POSTGRES_PASSWORD: 9f5aecfe570feeaf97ca31fce5521efa
+      POSTGRES_DB: freelanceos
+    ports:
+      # host access for dev migrations & tests only
+      - "127.0.0.1:5433:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U freelanceos -d freelanceos"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  uploads:

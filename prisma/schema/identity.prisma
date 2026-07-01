@@ -1,0 +1,40 @@
+// ── Module: identity ── single-user auth (modeled for future multi-user) + app settings.
+
+model User {
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  displayName  String   @map("display_name")
+  avatarUrl    String?  @map("avatar_url")
+  createdAt    DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt    DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("users")
+}
+
+enum Theme {
+  LIGHT
+  DARK
+  SYSTEM
+
+  @@map("theme")
+}
+
+/// Singleton row (id = 1) holding app-wide preferences.
+model Settings {
+  id              Int      @id @default(1)
+  baseCurrency    String   @default("USD") @map("base_currency") @db.Char(3)
+  locale          String   @default("en-US")
+  timezone        String   @default("Asia/Tehran")
+  dateFormat      String   @default("yyyy-MM-dd") @map("date_format")
+  freelancerName  String   @default("") @map("freelancer_name")
+  freelancerEmail String   @default("") @map("freelancer_email")
+  invoicePrefix   String   @default("INV-") @map("invoice_prefix")
+  nextInvoiceSeq  Int      @default(1) @map("next_invoice_seq")
+  labelPalette    Json     @default("[\"#61BD4F\",\"#F2D600\",\"#FF9F1A\",\"#EB5A46\",\"#C377E0\",\"#0079BF\",\"#00C2E0\",\"#51E898\",\"#FF78CB\",\"#344563\"]") @map("label_palette")
+  theme           Theme    @default(SYSTEM)
+  createdAt       DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@map("settings")
+}
