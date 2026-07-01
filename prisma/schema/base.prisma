@@ -1,0 +1,13 @@
+// FreelanceOS database schema — modular, one file per domain module.
+// Modules: identity, crm, projects, kanban, time, accounting, automation, templates.
+// Conventions: UUID pks (gen_random_uuid), snake_case columns via @map,
+// created_at/updated_at on every table, cascades exactly as specified in the spec.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}

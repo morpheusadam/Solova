@@ -1,0 +1,93 @@
+// ── Module: crm ── clients (companies) and their contracts.
+// Cascade rule: deleting a company deletes its contracts, projects, boards
+// (→ lists → cards). Financial documents (invoices/payments) RESTRICT instead.
+
+enum BillingModel {
+  MONTHLY_RETAINER
+  PER_PROJECT
+  PER_TASK
+  HOURLY
+
+  @@map("billing_model")
+}
+
+enum CompanyStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+
+  @@map("company_status")
+}
+
+model Company {
+  id               String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name             String
+  legalName        String?       @map("legal_name")
+  email            String?
+  phone            String?
+  website          String?
+  address          String?
+  city             String?
+  country          String?
+  taxId            String?       @map("tax_id")
+  logoUrl          String?       @map("logo_url")
+  notes            String?
+  billingModel     BillingModel  @map("billing_model")
+  defaultRateMinor BigInt?       @map("default_rate_minor")
+  currencyCode     String?       @map("currency_code") @db.Char(3)
+  status           CompanyStatus @default(ACTIVE)
+  createdAt        DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt        DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  contracts      Contract[]
+  projects       Project[]
+  boards         Board[]
+  timeEntries    TimeEntry[]
+  invoices       Invoice[]
+  payments       Payment[]
+  expenses       Expense[]
+  journalEntries JournalEntry[]
+
+  @@index([status])
+  @@map("companies")
+}
+
+enum ContractBillingPeriod {
+  MONTHLY
+  ONE_TIME
+  MILESTONE
+
+  @@map("contract_billing_period")
+}
+
+enum ContractStatus {
+  DRAFT
+  ACTIVE
+  COMPLETED
+  CANCELLED
+
+  @@map("contract_status")
+}
+
+model Contract {
+  id                 String                 @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId          String                 @map("company_id") @db.Uuid
+  company            Company                @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  title              String
+  startDate          DateTime?              @map("start_date") @db.Date
+  endDate            DateTime?              @map("end_date") @db.Date
+  valueMinor         BigInt?                @map("value_minor")
+  billingPeriod      ContractBillingPeriod? @map("billing_period")
+  monthlyAmountMinor BigInt?                @map("monthly_amount_minor")
+  status             ContractStatus         @default(DRAFT)
+  fileUrl            String?                @map("file_url")
+  notes              String?
+  createdAt          DateTime               @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt          DateTime               @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  invoices Invoice[]
+
+  @@index([companyId])
+  @@index([status])
+  @@map("contracts")
+}

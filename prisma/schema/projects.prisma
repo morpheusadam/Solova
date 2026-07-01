@@ -1,0 +1,72 @@
+// ── Module: projects ── project records with notes and user-defined custom fields.
+
+enum ProjectStatus {
+  PLANNING
+  ACTIVE
+  ON_HOLD
+  DONE
+  CANCELLED
+
+  @@map("project_status")
+}
+
+model Project {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId   String        @map("company_id") @db.Uuid
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  startDate   DateTime      @map("start_date") @db.Date
+  dueDate     DateTime?     @map("due_date") @db.Date
+  status      ProjectStatus @default(PLANNING)
+  color       String?
+  createdAt   DateTime      @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  notes        ProjectNote[]
+  customFields ProjectCustomField[]
+  boards       Board[]
+  timeEntries  TimeEntry[]
+  invoices     Invoice[]
+
+  @@index([companyId])
+  @@index([status])
+  @@map("projects")
+}
+
+model ProjectNote {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId String   @map("project_id") @db.Uuid
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([projectId])
+  @@map("project_notes")
+}
+
+enum CustomFieldType {
+  TEXT
+  NUMBER
+  DATE
+  BOOLEAN
+  SELECT
+
+  @@map("custom_field_type")
+}
+
+model ProjectCustomField {
+  id         String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  projectId  String          @map("project_id") @db.Uuid
+  project    Project         @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  fieldKey   String          @map("field_key")
+  fieldType  CustomFieldType @map("field_type")
+  fieldValue Json?           @map("field_value")
+  options    Json?
+  createdAt  DateTime        @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime        @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@unique([projectId, fieldKey])
+  @@map("project_custom_fields")
+}

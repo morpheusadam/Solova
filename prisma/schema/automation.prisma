@@ -1,0 +1,30 @@
+// ── Module: automation ── lightweight Butler-style, data-driven rules.
+// A rule = trigger + JSON conditions + JSON action list, evaluated in the
+// card service. Adding a new trigger/action type is additive (enum + handler).
+
+enum AutomationTrigger {
+  CARD_MOVED_TO_LIST
+  CARD_CREATED_IN_LIST
+  DUE_DATE_PASSED
+
+  @@map("automation_trigger")
+}
+
+model AutomationRule {
+  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name      String
+  isEnabled Boolean           @default(true) @map("is_enabled")
+  /// null = applies to all boards
+  boardId   String?           @map("board_id") @db.Uuid
+  trigger   AutomationTrigger
+  /// e.g. { "listName": "Done" } — matched against the trigger context
+  conditions Json             @default("{}")
+  /// e.g. [{ "type": "MARK_COMPLETED" }, { "type": "ADD_LABEL", "labelName": "Overdue", "labelColor": "#EB5A46" }]
+  actions   Json              @default("[]")
+  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([trigger])
+  @@index([boardId])
+  @@map("automation_rules")
+}

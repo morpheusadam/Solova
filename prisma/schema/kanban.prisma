@@ -1,0 +1,186 @@
+// ── Module: kanban ── Trello-parity boards → lists → cards, with labels,
+// checklists, comments, attachments and the per-card activity trail that
+// powers the dashboard heatmap.
+//
+// Cascade rules (spec §4): deleting a board deletes its lists and cards
+// (cards carry BOTH list_id and a denormalized board_id, each ON DELETE
+// CASCADE, so the rule holds even mid-move). Deleting a company cascades
+// through boards.
+
+model Board {
+  id         String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId  String    @map("company_id") @db.Uuid
+  company    Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  projectId  String?   @map("project_id") @db.Uuid
+  project    Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  name       String
+  background String?
+  position   Float
+  archivedAt DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  lists  List[]
+  cards  Card[]
+  labels Label[]
+
+  @@index([companyId])
+  @@index([projectId])
+  @@map("boards")
+}
+
+model List {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boardId   String   @map("board_id") @db.Uuid
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  name      String
+  position  Float
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  cards Card[]
+
+  @@index([boardId])
+  @@map("lists")
+}
+
+model Card {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  listId      String    @map("list_id") @db.Uuid
+  list        List      @relation(fields: [listId], references: [id], onDelete: Cascade)
+  boardId     String    @map("board_id") @db.Uuid
+  board       Board     @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  position    Float
+  dueDate     DateTime? @map("due_date") @db.Timestamptz(6)
+  startDate   DateTime? @map("start_date") @db.Timestamptz(6)
+  cover       String?
+  isCompleted Boolean   @default(false) @map("is_completed")
+  completedAt DateTime? @map("completed_at") @db.Timestamptz(6)
+  archivedAt  DateTime? @map("archived_at") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  labels      CardLabel[]
+  checklists  Checklist[]
+  comments    CardComment[]
+  attachments CardAttachment[]
+  activity    CardActivity[]
+  timeEntries TimeEntry[]
+
+  @@index([listId])
+  @@index([boardId])
+  @@index([dueDate])
+  @@index([isCompleted])
+  @@map("cards")
+}
+
+model Label {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  boardId   String   @map("board_id") @db.Uuid
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  name      String
+  color     String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  cards CardLabel[]
+
+  @@index([boardId])
+  @@map("labels")
+}
+
+model CardLabel {
+  cardId    String   @map("card_id") @db.Uuid
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  labelId   String   @map("label_id") @db.Uuid
+  label     Label    @relation(fields: [labelId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@id([cardId, labelId])
+  @@index([labelId])
+  @@map("card_labels")
+}
+
+model Checklist {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  title     String
+  position  Float
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  items ChecklistItem[]
+
+  @@index([cardId])
+  @@map("checklists")
+}
+
+model ChecklistItem {
+  id          String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  checklistId String    @map("checklist_id") @db.Uuid
+  checklist   Checklist @relation(fields: [checklistId], references: [id], onDelete: Cascade)
+  text        String
+  isChecked   Boolean   @default(false) @map("is_checked")
+  position    Float
+  dueDate     DateTime? @map("due_date") @db.Timestamptz(6)
+  createdAt   DateTime  @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt   DateTime  @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([checklistId])
+  @@map("checklist_items")
+}
+
+model CardComment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([cardId])
+  @@map("card_comments")
+}
+
+model CardAttachment {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cardId    String   @map("card_id") @db.Uuid
+  card      Card     @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  fileUrl   String   @map("file_url")
+  fileName  String   @map("file_name")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([cardId])
+  @@map("card_attachments")
+}
+
+enum CardActivityAction {
+  CREATED
+  MOVED
+  COMPLETED
+  COMMENTED
+  UPDATED
+  ARCHIVED
+
+  @@map("card_activity_action")
+}
+
+/// Audit trail per card. Every meaningful mutation writes one row;
+/// the dashboard heatmap aggregates these per day.
+model CardActivity {
+  id        String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  cardId    String             @map("card_id") @db.Uuid
+  card      Card               @relation(fields: [cardId], references: [id], onDelete: Cascade)
+  boardId   String             @map("board_id") @db.Uuid
+  action    CardActivityAction
+  meta      Json?
+  createdAt DateTime           @default(now()) @map("created_at") @db.Timestamptz(6)
+
+  @@index([cardId])
+  @@index([boardId])
+  @@index([createdAt])
+  @@map("card_activity")
+}
