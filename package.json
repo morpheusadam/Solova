@@ -2,6 +2,7 @@
   "name": "freelanceos",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@11.9.0",
   "description": "Self-hosted business OS for a solo freelancer: CRM, Trello-style boards, projects, contracts, double-entry accounting, and an activity dashboard.",
   "scripts": {
     "dev": "next dev --turbo",
@@ -54,6 +55,7 @@
     "rehype-sanitize": "^6.0.0",
     "remark-gfm": "^4.0.0",
     "superjson": "^2.2.2",
+    "tailwind-merge": "^3.6.0",
     "zod": "^3.25.0",
     "zustand": "^5.0.0"
   },
