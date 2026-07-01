@@ -23,3 +23,16 @@
 - **Seed credentials** come from `ADMIN_EMAIL`/`ADMIN_PASSWORD` env vars (never hardcoded) since the app is publicly reachable; password stored operator-side only.
 - **Tests run on a dedicated `freelanceos_test` database** created by vitest global setup; cleanup uses `session_replication_role = replica` because the append-only triggers (correctly) refuse to delete ledger rows.
 - **Card `cover` column added** (spec §5 requires card covers; §4 table list omitted it) and card members table skipped — single-user; `users` table already models the future multi-user shape.
+
+## Phases 2–8 — API & UI
+- **No middleware.ts**: argon2 is a native module and NextAuth edge-splitting adds complexity for zero gain in a single-user app — the `(app)` layout and every tRPC procedure check the session server-side instead.
+- **Design tokens as CSS custom properties** switching on `.dark` (next-themes, class attribute), mapped into Tailwind v4 via `@theme inline`. Glass recipes (`.glass-card`, `.glass-column`, `.glass-sidebar`, `.glass-modal`, `.glass-chip`, `.raised-card`) come 1:1 from `semantic._glassRecipes` in design-token.json.
+- **Card hover lift** animates `transform` only; the stronger hover shadow is a pre-rendered `::after` whose *opacity* animates — complies with the "never transition box-shadow" rule while keeping the Trello feel.
+- **UI primitives hand-rolled on Radix** (Button, Dialog, Dropdown, Popover, Select, Tabs, Checkbox, Switch, Tooltip, Toast) instead of shadcn CLI output: fewer files, and every color/radius/shadow comes from the token sheet rather than shadcn's default theme.
+- **Optimistic drag-and-drop**: on drop the board query cache is rewritten immediately (`utils.board.byId.setData`), the mutation sends `{cardId, toListId, position}`; on error the cache invalidates back to server truth. Positions are midpoints of the drop neighbours; `needsRebalance` triggers a one-shot list re-space.
+- **Filters disable drag** (search/label/completed): dropping into a filtered list would compute positions against invisible neighbours; Trello-grade correctness beats parity here. A hint is shown in the filter popover.
+- **Invoice lifecycle**: created as DRAFT (numbered from settings seq) → *Issue* posts the journal entry and marks SENT → payments flip status via `refreshInvoiceStatus` → *Void* posts a reversing entry (only when unpaid). Draft deletes are allowed; issued invoices are never deleted.
+- **Money inputs** are entered in major units and converted with the currency's minor-unit factor at the form boundary; IRR/JPY-style zero-decimal currencies use factor 1.
+- **Uploads** stored on disk under `UPLOADS_DIR` (docker volume), served through an auth-checked route handler with sanitized names; native `<input type="date">` instead of a datepicker dependency.
+- **Heatmap** is a hand-rolled SVG (53 weeks × 7 days, Monday-start), 5 buckets scaled to the year's max, breakdown exposed via `<title>` for hover + screen readers.
+- **Automation UI** lives in Settings as enable/disable toggles over the seeded rules; the engine itself is data-driven so new rules are inserts, not code.

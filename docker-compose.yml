@@ -15,7 +15,23 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
     restart: unless-stopped
+
+  # one-shot: applies prisma/schema/migrations before the app starts
+  migrate:
+    build:
+      context: .
+      target: build
+    command: ["pnpm", "prisma", "migrate", "deploy"]
+    environment:
+      DATABASE_URL: postgresql://freelanceos:9f5aecfe570feeaf97ca31fce5521efa@db:5432/freelanceos
+      CI: "true"
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
 
   db:
     image: postgres:16-alpine
