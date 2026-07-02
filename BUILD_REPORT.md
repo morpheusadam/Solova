@@ -11,16 +11,19 @@
 - Every §2 menu section functional end-to-end (verified against the live server: csrf → credentials login 302 → authed tRPC 200 → /dashboard 200).
 - Accessibility/performance rules applied: labels on all icon buttons, visible focus ring token, `type="button"`, transform/opacity-only animation (card hover shadow via `::after` opacity), reduced-motion guard, logical (RTL-ready) properties, bottom-nav ≤5 items on mobile, lazy heatmap `<title>` tooltips.
 
-## Known issues / to review
+## Resolved in the follow-up pass (2026-07-02)
 
-1. **Nightly pg_dump not yet wired** — the updated `/opt/lavzen-backup/backup.sh` (removes dead plane/twenty blocks, adds `solova-db` + `solova-uploads`) is prepared at `.git/backup.sh.new` with installer `.git/install-backup.sh`, but writing to the shared root-owned script required an authorization the build agent didn't have. Run once:
-   `sudo bash /home/morpheus/projects/lavzen-stack/solova/.git/install-backup.sh && sudo bash /opt/lavzen-backup/backup.sh`
-2. **Time tracking UI is minimal** — full API exists (list/create/timers) and hours feed the dashboard + heatmap, but there is no dedicated Time page; entries are created via API/seed for now.
-3. **Template management** — board/card templates are usable (seeded "Kanban Basic", "Bug Report") but there is no UI to author new templates; add rows to `board_templates`/`card_templates`.
-4. **Checklist item due dates** exist in schema/API but the card modal doesn't expose editing them yet.
-5. **Drag-and-drop under active filters is disabled** by design (positions against hidden neighbours would be wrong) — hint shown in the filter popover.
-6. **Attachments/logo uploads** are stored on the `uploads` docker volume; they are excluded from the JSON export (files aren't JSON) — the volume is covered by the backup block from issue 1.
-7. Card "Members" intentionally omitted (single-user); the `users` table is multi-user-ready per spec.
+1. ✅ **Nightly backup wired** — `/opt/lavzen-backup/backup.sh` updated (dead plane/twenty blocks removed, `solova-db` pg_dump + `solova-uploads` archive added, secrets in backup.env); verified run: overall=ok, both artifacts created. Old script kept as `backup.sh.bak-<date>`.
+2. ✅ **Time tracking UI** — topbar start/stop timer widget (live elapsed, one running entry) + `/time` page (entries table, billable value, manual "Log time" dialog, delete). Kept out of the primary sidebar to preserve the spec's exact 7 sections; reachable from the timer widget.
+3. ✅ **Template authoring** — "Save as template" on the card modal and in the board menu (snapshots labels/checklists/lists/background); "Add from template" menu on every list's quick-add; manage/delete templates in Settings.
+4. ✅ **Checklist item due dates** — inline date input per item in the card modal (overdue highlighted).
+5. ✅ **Hub launcher** — Solova tile added to hub.lavzen.com.
+
+## Known limitations (by design / accepted)
+
+- **Drag-and-drop under active filters is disabled** (positions against hidden neighbours would be wrong) — hint shown in the filter popover.
+- **Attachments/logo uploads** live on the `uploads` docker volume, excluded from the JSON export (binary); covered by the nightly backup instead.
+- Card "Members" intentionally omitted (single-user); the `users` table is multi-user-ready per spec.
 
 ## Operating notes
 

@@ -134,6 +134,45 @@ export const cardRouter = createTRPCRouter({
     ctx.db.cardTemplate.findMany({ orderBy: { name: "asc" } }),
   ),
 
+  /** Snapshot an existing card (labels + checklists) into a reusable template. */
+  saveAsTemplate: protectedProcedure
+    .input(z.object({ cardId: uuid, name: z.string().min(1).max(120) }))
+    .mutation(async ({ ctx, input }) => {
+      const card = await ctx.db.card.findUnique({
+        where: { id: input.cardId },
+        include: {
+          labels: { include: { label: true } },
+          checklists: {
+            orderBy: { position: "asc" },
+            include: { items: { orderBy: { position: "asc" } } },
+          },
+        },
+      });
+      if (!card) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db.cardTemplate.create({
+        data: {
+          name: input.name,
+          payload: {
+            title: card.title,
+            description: card.description ?? undefined,
+            labels: card.labels.map((cl) => ({
+              name: cl.label.name,
+              color: cl.label.color,
+            })),
+            checklists: card.checklists.map((cl) => ({
+              title: cl.title,
+              items: cl.items.map((i) => i.text),
+            })),
+          },
+        },
+      });
+    }),
+
+  deleteCardTemplate: protectedProcedure.input(uuid).mutation(async ({ ctx, input }) => {
+    await ctx.db.cardTemplate.delete({ where: { id: input } });
+    return { ok: true };
+  }),
+
   update: protectedProcedure.input(cardUpdateInput).mutation(({ ctx, input }) =>
     ctx.db.$transaction(async (tx) => {
       const { id, ...data } = input;
@@ -272,6 +311,15 @@ export const cardRouter = createTRPCRouter({
       ctx.db.checklistItem.update({
         where: { id: input.id },
         data: { isChecked: input.isChecked },
+      }),
+    ),
+
+  setChecklistItemDueDate: protectedProcedure
+    .input(z.object({ id: uuid, dueDate: z.coerce.date().nullable() }))
+    .mutation(({ ctx, input }) =>
+      ctx.db.checklistItem.update({
+        where: { id: input.id },
+        data: { dueDate: input.dueDate },
       }),
     ),
 

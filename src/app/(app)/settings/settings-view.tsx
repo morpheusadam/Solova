@@ -39,6 +39,14 @@ export function SettingsView() {
   const toggleRule = api.settings.toggleAutomationRule.useMutation({
     onSuccess: () => utils.settings.automationRules.invalidate(),
   });
+  const { data: cardTemplates } = api.card.cardTemplates.useQuery();
+  const { data: boardTemplates } = api.board.templates.useQuery();
+  const deleteCardTemplate = api.card.deleteCardTemplate.useMutation({
+    onSuccess: () => utils.card.cardTemplates.invalidate(),
+  });
+  const deleteBoardTemplate = api.board.deleteTemplate.useMutation({
+    onSuccess: () => utils.board.templates.invalidate(),
+  });
 
   const [palette, setPalette] = useState<string[]>([]);
   const [newColor, setNewColor] = useState("#0079BF");
@@ -238,6 +246,53 @@ export function SettingsView() {
             ))}
             {!rules?.length ? (
               <p className="text-md text-ink-subtle">No rules defined.</p>
+            ) : null}
+          </ul>
+        </section>
+
+        {/* templates */}
+        <section className="glass-card p-5" aria-label="Templates">
+          <h3 className="mb-1 font-semibold text-ink">Templates</h3>
+          <p className="mb-4 text-sm text-ink-subtle">
+            Created from any card ("Save as template") or board menu; used by
+            "Add from template" and "New board".
+          </p>
+          <h4 className="mb-1.5 text-sm font-semibold text-ink-secondary">Card templates</h4>
+          <ul className="mb-4 space-y-1.5">
+            {cardTemplates?.map((t) => (
+              <li key={t.id} className="flex items-center gap-2">
+                <span className="flex-1 truncate text-md text-ink">{t.name}</span>
+                <Button
+                  variant="ghost"
+                  size="iconSm"
+                  aria-label={`Delete card template ${t.name}`}
+                  onClick={() => deleteCardTemplate.mutate(t.id)}
+                >
+                  <X aria-hidden />
+                </Button>
+              </li>
+            ))}
+            {!cardTemplates?.length ? (
+              <p className="text-md text-ink-subtle">None yet.</p>
+            ) : null}
+          </ul>
+          <h4 className="mb-1.5 text-sm font-semibold text-ink-secondary">Board templates</h4>
+          <ul className="space-y-1.5">
+            {boardTemplates?.map((t) => (
+              <li key={t.id} className="flex items-center gap-2">
+                <span className="flex-1 truncate text-md text-ink">{t.name}</span>
+                <Button
+                  variant="ghost"
+                  size="iconSm"
+                  aria-label={`Delete board template ${t.name}`}
+                  onClick={() => deleteBoardTemplate.mutate(t.id)}
+                >
+                  <X aria-hidden />
+                </Button>
+              </li>
+            ))}
+            {!boardTemplates?.length ? (
+              <p className="text-md text-ink-subtle">None yet.</p>
             ) : null}
           </ul>
         </section>

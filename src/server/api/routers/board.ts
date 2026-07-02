@@ -143,6 +143,35 @@ export const boardRouter = createTRPCRouter({
     ctx.db.boardTemplate.findMany({ orderBy: { name: "asc" } }),
   ),
 
+  /** Snapshot a board's lists, labels and background into a reusable template. */
+  saveAsTemplate: protectedProcedure
+    .input(z.object({ boardId: uuid, name: z.string().min(1).max(120) }))
+    .mutation(async ({ ctx, input }) => {
+      const board = await ctx.db.board.findUnique({
+        where: { id: input.boardId },
+        include: {
+          lists: { orderBy: { position: "asc" }, select: { name: true } },
+          labels: { select: { name: true, color: true } },
+        },
+      });
+      if (!board) throw new TRPCError({ code: "NOT_FOUND" });
+      return ctx.db.boardTemplate.create({
+        data: {
+          name: input.name,
+          payload: {
+            lists: board.lists.map((l) => l.name),
+            labels: board.labels,
+            background: board.background ?? undefined,
+          },
+        },
+      });
+    }),
+
+  deleteTemplate: protectedProcedure.input(uuid).mutation(async ({ ctx, input }) => {
+    await ctx.db.boardTemplate.delete({ where: { id: input } });
+    return { ok: true };
+  }),
+
   update: protectedProcedure
     .input(z.object({ id: uuid, data: boardInput.partial() }))
     .mutation(({ ctx, input }) =>
