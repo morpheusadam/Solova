@@ -43,7 +43,7 @@ export function ContactsView() {
     <>
       <PageHeader
         title="Contacts"
-        description="Everyone you work with, grouped by company."
+        description="Everyone you work with. A contact can belong to a company — or none."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus aria-hidden />
@@ -91,7 +91,7 @@ export function ContactsView() {
         <EmptyState
           icon={ContactIcon}
           title="No contacts yet"
-          description="Add the people you deal with at each company — emails, phones, socials and notes."
+          description="Add the people you work with — assign them to a company or leave it blank."
           action={
             <Button onClick={() => setCreateOpen(true)}>
               <Plus aria-hidden />

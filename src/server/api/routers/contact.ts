@@ -33,7 +33,7 @@ export const contactRouter = createTRPCRouter({
   ),
 
   create: protectedProcedure.input(contactInput).mutation(({ ctx, input }) =>
-    ctx.db.contact.create({ data: input }),
+    ctx.db.contact.create({ data: { ...input, companyId: input.companyId ?? null } }),
   ),
 
   update: protectedProcedure

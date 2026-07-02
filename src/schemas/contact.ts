@@ -6,7 +6,7 @@ const optionalText = (max: number) =>
   z.string().max(max).optional().nullable().or(z.literal("").transform(() => null));
 
 export const contactInput = z.object({
-  companyId: uuid,
+  companyId: uuid.optional().nullable(),
   name: z.string().min(1, "Name is required").max(200),
   role: optionalText(120),
   email: z.string().email().optional().nullable().or(z.literal("").transform(() => null)),
