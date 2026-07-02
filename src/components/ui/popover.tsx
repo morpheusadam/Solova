@@ -18,7 +18,11 @@ export const PopoverContent = React.forwardRef<
       ref={ref}
       align={align}
       sideOffset={sideOffset}
-      className={cn("glass-modal z-[500] w-72 !rounded-lg p-3 text-ink", className)}
+      className={cn(
+        // above the dialog layer (700) so popovers opened from modals stay on top
+        "glass-modal z-[750] w-72 !rounded-lg p-3 text-ink",
+        className,
+      )}
       {...props}
     />
   </PopoverPrimitive.Portal>

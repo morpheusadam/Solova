@@ -17,7 +17,8 @@ export const DropdownMenuContent = React.forwardRef<
       ref={ref}
       sideOffset={sideOffset}
       className={cn(
-        "glass-modal z-[400] min-w-44 !rounded-lg p-1.5 text-md text-ink",
+        // above the dialog layer (700) so menus opened from modals stay on top
+        "glass-modal z-[750] min-w-44 !rounded-lg p-1.5 text-md text-ink",
         className,
       )}
       {...props}
