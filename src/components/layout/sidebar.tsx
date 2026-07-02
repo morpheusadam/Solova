@@ -57,7 +57,7 @@ export function Sidebar() {
             F
           </span>
         )}
-        <span className="text-lg font-semibold text-ink">FreelanceOS</span>
+        <span className="text-lg font-semibold text-ink">Solova</span>
       </Link>
 
       <ul className="flex flex-col gap-0.5">

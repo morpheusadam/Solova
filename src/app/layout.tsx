@@ -8,9 +8,9 @@ import { TRPCReactProvider } from "~/trpc/react";
 import "~/styles/globals.css";
 
 export const metadata: Metadata = {
-  title: { default: "FreelanceOS", template: "%s · FreelanceOS" },
+  title: { default: "Solova — Freelance Project Manager", template: "%s · Solova" },
   description:
-    "Self-hosted business OS for a solo freelancer: clients, Trello-style boards, projects, contracts and double-entry accounting.",
+    "Solova — a self-hosted freelance project manager: clients, Trello-style boards, projects, contracts and double-entry accounting.",
   icons: [{ rel: "icon", url: "/favicon.svg", type: "image/svg+xml" }],
 };
 

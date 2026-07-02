@@ -69,7 +69,7 @@ export function SettingsView() {
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = `freelanceos-export-${payload.exportedAt.slice(0, 10)}.json`;
+      a.download = `solova-export-${payload.exportedAt.slice(0, 10)}.json`;
       a.click();
       URL.revokeObjectURL(url);
       toast.success("Export downloaded");

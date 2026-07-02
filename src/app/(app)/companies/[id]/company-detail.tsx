@@ -68,9 +68,6 @@ export function CompanyDetail({ companyId }: { companyId: string }) {
     return <Skeleton className="h-96" />;
   }
 
-  const hasFinancialDocs =
-    (deletePreview?.invoices ?? 0) > 0 || (deletePreview?.payments ?? 0) > 0;
-
   return (
     <>
       <PageHeader
@@ -481,21 +478,15 @@ export function CompanyDetail({ companyId }: { companyId: string }) {
         confirmLabel="Delete everything"
         body={
           <div className="rounded-sm bg-status-danger p-3 text-md text-ink">
-            {hasFinancialDocs ? (
-              <p>
-                This company has <strong>{deletePreview?.invoices} invoices</strong> and{" "}
-                <strong>{deletePreview?.payments} payments</strong>. Financial history is
-                protected — void or reassign them before deleting.
-              </p>
-            ) : (
-              <p>
-                Deleting this company permanently removes{" "}
-                <strong>{deletePreview?.boards} boards</strong>,{" "}
-                <strong>{deletePreview?.cards} cards</strong>,{" "}
-                <strong>{deletePreview?.projects} projects</strong> and{" "}
-                <strong>{deletePreview?.contracts} contracts</strong>.
-              </p>
-            )}
+            <p>
+              This permanently deletes <strong>everything</strong> for this company:{" "}
+              <strong>{deletePreview?.boards} boards</strong>,{" "}
+              <strong>{deletePreview?.cards} cards</strong>,{" "}
+              <strong>{deletePreview?.projects} projects</strong>,{" "}
+              <strong>{deletePreview?.contracts} contracts</strong>,{" "}
+              <strong>{deletePreview?.invoices} invoices</strong> and{" "}
+              <strong>{deletePreview?.payments} payments</strong>.
+            </p>
           </div>
         }
         onConfirm={async () => {

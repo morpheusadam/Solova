@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 /*
- * FreelanceOS design system — generated from design-token.json
+ * Solova design system — generated from design-token.json
  * ("Trello-Glass": Trello structure & palette on glassmorphism surfaces).
  * Semantic tokens are CSS custom properties that switch with `.dark`;
  * components consume them through Tailwind utilities mapped in @theme inline.
