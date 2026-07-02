@@ -107,7 +107,7 @@ enum InvoiceStatus {
 model Invoice {
   id            String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId     String        @map("company_id") @db.Uuid
-  company       Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  company       Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   contractId    String?       @map("contract_id") @db.Uuid
   contract      Contract?     @relation(fields: [contractId], references: [id], onDelete: SetNull)
   projectId     String?       @map("project_id") @db.Uuid
@@ -172,7 +172,7 @@ enum PaymentMethod {
 model Payment {
   id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId   String        @map("company_id") @db.Uuid
-  company     Company       @relation(fields: [companyId], references: [id], onDelete: Restrict)
+  company     Company       @relation(fields: [companyId], references: [id], onDelete: Cascade)
   invoiceId   String?       @map("invoice_id") @db.Uuid
   invoice     Invoice?      @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
   amountMinor BigInt        @map("amount_minor")
@@ -191,7 +191,7 @@ model Payment {
 model Expense {
   id                String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   companyId         String?  @map("company_id") @db.Uuid
-  company           Company? @relation(fields: [companyId], references: [id], onDelete: SetNull)
+  company           Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   categoryAccountId String   @map("category_account_id") @db.Uuid
   categoryAccount   Account  @relation(fields: [categoryAccountId], references: [id], onDelete: Restrict)
   description       String

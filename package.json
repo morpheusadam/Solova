@@ -1,9 +1,9 @@
 {
-  "name": "freelanceos",
+  "name": "solova",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@11.9.0",
-  "description": "Self-hosted business OS for a solo freelancer: CRM, Trello-style boards, projects, contracts, double-entry accounting, and an activity dashboard.",
+  "description": "Solova — a self-hosted freelance project manager: CRM, Trello-style boards, projects, contracts, double-entry accounting, and an activity dashboard.",
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",

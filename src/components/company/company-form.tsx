@@ -1,6 +1,8 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Plus, X } from "lucide-react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 
@@ -64,6 +66,11 @@ export function CompanyFormDialog({
 
   const create = api.company.create.useMutation();
   const update = api.company.update.useMutation();
+  const createContact = api.contact.create.useMutation();
+
+  // Inline contacts you can add while defining a NEW company.
+  type DraftContact = { name: string; role: string; email: string; phone: string };
+  const [contacts, setContacts] = useState<DraftContact[]>([]);
 
   const billingModel = form.watch("billingModel");
   const currency = form.watch("currencyCode") ?? money.currency;
@@ -75,12 +82,29 @@ export function CompanyFormDialog({
         await update.mutateAsync({ id: company.id, data: values });
         toast.success("Company updated");
       } else {
-        await create.mutateAsync(companyInput.parse(values));
-        toast.success("Company created");
+        const created = await create.mutateAsync(companyInput.parse(values));
+        const validContacts = contacts.filter((c) => c.name.trim());
+        for (const c of validContacts) {
+          await createContact.mutateAsync({
+            companyId: created.id,
+            name: c.name.trim(),
+            role: c.role || null,
+            email: c.email || null,
+            phone: c.phone || null,
+            isPrimary: false,
+          });
+        }
+        await utils.contact.invalidate();
+        toast.success(
+          validContacts.length
+            ? `Company created with ${validContacts.length} contact${validContacts.length > 1 ? "s" : ""}`
+            : "Company created",
+        );
       }
       await utils.company.invalidate();
       onOpenChange(false);
       form.reset();
+      setContacts([]);
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Something went wrong");
     }
@@ -199,6 +223,93 @@ export function CompanyFormDialog({
               <Textarea id="notes" rows={3} {...form.register("notes")} />
             </Field>
           </div>
+
+          {/* Inline contacts (create mode) — add the people at this company here. */}
+          {!company ? (
+            <div className="sm:col-span-2">
+              <div className="mb-1.5 flex items-center justify-between">
+                <span className="text-sm font-medium text-ink-secondary">Contacts</span>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  onClick={() =>
+                    setContacts((cs) => [...cs, { name: "", role: "", email: "", phone: "" }])
+                  }
+                >
+                  <Plus aria-hidden />
+                  Add contact
+                </Button>
+              </div>
+              {contacts.length === 0 ? (
+                <p className="text-sm text-ink-subtle">
+                  Optionally add one or more people at this company.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {contacts.map((c, i) => (
+                    <div key={i} className="flex flex-wrap items-center gap-2">
+                      <Input
+                        aria-label={`Contact ${i + 1} name`}
+                        placeholder="Name"
+                        value={c.name}
+                        onChange={(e) =>
+                          setContacts((cs) =>
+                            cs.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)),
+                          )
+                        }
+                        className="min-w-32 flex-1"
+                      />
+                      <Input
+                        aria-label={`Contact ${i + 1} role`}
+                        placeholder="Role"
+                        value={c.role}
+                        onChange={(e) =>
+                          setContacts((cs) =>
+                            cs.map((x, j) => (j === i ? { ...x, role: e.target.value } : x)),
+                          )
+                        }
+                        className="min-w-24 flex-1"
+                      />
+                      <Input
+                        aria-label={`Contact ${i + 1} email`}
+                        type="email"
+                        placeholder="Email"
+                        value={c.email}
+                        onChange={(e) =>
+                          setContacts((cs) =>
+                            cs.map((x, j) => (j === i ? { ...x, email: e.target.value } : x)),
+                          )
+                        }
+                        className="min-w-32 flex-1"
+                      />
+                      <Input
+                        aria-label={`Contact ${i + 1} phone`}
+                        type="tel"
+                        placeholder="Phone"
+                        value={c.phone}
+                        onChange={(e) =>
+                          setContacts((cs) =>
+                            cs.map((x, j) => (j === i ? { ...x, phone: e.target.value } : x)),
+                          )
+                        }
+                        className="min-w-28 flex-1"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="iconSm"
+                        aria-label={`Remove contact ${i + 1}`}
+                        onClick={() => setContacts((cs) => cs.filter((_, j) => j !== i))}
+                      >
+                        <X aria-hidden />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          ) : null}
 
           <DialogFooter className="sm:col-span-2">
             <Button variant="subtle" onClick={() => onOpenChange(false)}>

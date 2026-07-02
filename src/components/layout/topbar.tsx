@@ -53,7 +53,7 @@ export function Topbar({
         >
           F
         </span>
-        <span className="font-semibold text-ink">FreelanceOS</span>
+        <span className="font-semibold text-ink">Solova</span>
       </Link>
       <div className="hidden md:block" />
 

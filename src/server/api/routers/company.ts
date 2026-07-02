@@ -117,17 +117,13 @@ export const companyRouter = createTRPCRouter({
     return { boards, projects, contracts, cards, invoices, payments };
   }),
 
-  /** Cascades boards→lists→cards, projects, contracts (spec §4). RESTRICTs on financial docs. */
+  /**
+   * Hard delete: cascades EVERYTHING belonging to the company — boards→lists→cards,
+   * projects, contracts, contacts, and its invoices/payments/expenses (spec §4 was
+   * relaxed at the owner's request so a company delete wipes all of its data).
+   * Posted journal entries stay in the append-only ledger with company_id nulled.
+   */
   delete: protectedProcedure.input(uuid).mutation(async ({ ctx, input }) => {
-    const financialDocs = await ctx.db.invoice.count({ where: { companyId: input } });
-    const paymentDocs = await ctx.db.payment.count({ where: { companyId: input } });
-    if (financialDocs > 0 || paymentDocs > 0) {
-      throw new TRPCError({
-        code: "CONFLICT",
-        message:
-          "This company has invoices or payments. Financial history is protected — void or reassign those documents first.",
-      });
-    }
     await ctx.db.company.delete({ where: { id: input } });
     return { ok: true };
   }),

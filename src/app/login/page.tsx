@@ -25,9 +25,9 @@ export default async function LoginPage() {
           >
             F
           </span>
-          <h1 className="text-2xl font-semibold text-ink">FreelanceOS</h1>
+          <h1 className="text-2xl font-semibold text-ink">Solova</h1>
           <p className="mt-1 text-md text-ink-secondary">
-            Sign in to your workspace
+            Freelance Project Manager
           </p>
         </div>
         <LoginForm />

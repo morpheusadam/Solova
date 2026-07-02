@@ -1,4 +1,4 @@
-# BUILD_REPORT.md — FreelanceOS
+# BUILD_REPORT.md — Solova
 
 **Status: all phases complete and deployed.** https://solova.lavzen.com (Docker on WSL, behind Cloudflare Tunnel).
 
