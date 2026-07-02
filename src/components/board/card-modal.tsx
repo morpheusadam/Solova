@@ -28,6 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "~/components/ui/popover
 import { Textarea } from "~/components/ui/textarea";
 import { toast } from "~/components/ui/toast";
 import { cn } from "~/lib/utils";
+import { PHOTOS, coverBackground, isImageCover } from "~/lib/wallpapers";
 import { api } from "~/trpc/react";
 
 const COVER_COLORS = [
@@ -125,11 +126,11 @@ export function CardModal({
           <div className="p-6 text-md text-ink-secondary">Loading…</div>
         ) : (
           <>
-            {card.cover?.startsWith("color:") ? (
+            {card.cover ? (
               <div
                 aria-hidden
-                className="h-16 rounded-t-[inherit]"
-                style={{ background: card.cover.slice(6) }}
+                className={cn("rounded-t-[inherit]", isImageCover(card.cover) ? "h-40" : "h-16")}
+                style={{ background: coverBackground(card.cover) }}
               />
             ) : null}
 
@@ -579,7 +580,8 @@ export function CardModal({
                       Cover
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-56" aria-label="Card cover">
+                  <PopoverContent className="w-64" aria-label="Card cover">
+                    <p className="mb-1.5 text-sm font-medium text-ink-secondary">Colors</p>
                     <div className="grid grid-cols-4 gap-1.5">
                       {COVER_COLORS.map((color) => (
                         <button
@@ -589,6 +591,19 @@ export function CardModal({
                           onClick={() => update.mutate({ id: card.id, cover: `color:${color}` })}
                           className="h-9 cursor-pointer rounded-sm"
                           style={{ backgroundColor: color }}
+                        />
+                      ))}
+                    </div>
+                    <p className="mt-3 mb-1.5 text-sm font-medium text-ink-secondary">Photos</p>
+                    <div className="grid max-h-40 grid-cols-4 gap-1.5 overflow-y-auto">
+                      {PHOTOS.map((p) => (
+                        <button
+                          key={p}
+                          type="button"
+                          aria-label={`Cover ${p}`}
+                          onClick={() => update.mutate({ id: card.id, cover: p })}
+                          className="h-9 cursor-pointer rounded-sm"
+                          style={{ background: coverBackground(p) }}
                         />
                       ))}
                     </div>
