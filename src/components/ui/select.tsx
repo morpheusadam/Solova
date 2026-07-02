@@ -40,7 +40,8 @@ export const SelectContent = React.forwardRef<
       position={position}
       sideOffset={4}
       className={cn(
-        "glass-modal z-[500] max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-y-auto !rounded-lg p-1.5",
+        // above the dialog layer (700) so selects inside modals stay on top
+        "glass-modal z-[750] max-h-72 min-w-[var(--radix-select-trigger-width)] overflow-y-auto !rounded-lg p-1.5",
         className,
       )}
       {...props}
