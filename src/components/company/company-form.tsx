@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 
@@ -74,6 +74,12 @@ export function CompanyFormDialog({
   const { data: allContacts } = api.contact.list.useQuery({}, { enabled: !company });
   const [selectedContactIds, setSelectedContactIds] = useState<string[]>([]);
 
+  // Clear the selection whenever the dialog closes so a stale pick can't carry
+  // into the next company (and can't reference a since-deleted contact).
+  useEffect(() => {
+    if (!open) setSelectedContactIds([]);
+  }, [open]);
+
   const billingModel = form.watch("billingModel");
   const currency = form.watch("currencyCode") ?? money.currency;
   const factor = minorUnitFactor(currency);
@@ -85,16 +91,23 @@ export function CompanyFormDialog({
         toast.success("Company updated");
       } else {
         const created = await create.mutateAsync(companyInput.parse(values));
-        for (const contactId of selectedContactIds) {
-          await attachContact.mutateAsync({
-            id: contactId,
-            data: { companyId: created.id },
-          });
+        // Only attach contacts that still exist (guards against deletions).
+        const validIds = selectedContactIds.filter((id) =>
+          allContacts?.some((c) => c.id === id),
+        );
+        let attached = 0;
+        for (const contactId of validIds) {
+          try {
+            await attachContact.mutateAsync({ id: contactId, data: { companyId: created.id } });
+            attached += 1;
+          } catch {
+            // contact was removed meanwhile — skip it rather than fail the create
+          }
         }
         await utils.contact.invalidate();
         toast.success(
-          selectedContactIds.length
-            ? `Company created with ${selectedContactIds.length} contact${selectedContactIds.length > 1 ? "s" : ""}`
+          attached
+            ? `Company created with ${attached} contact${attached > 1 ? "s" : ""}`
             : "Company created",
         );
       }
