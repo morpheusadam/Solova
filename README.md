@@ -227,3 +227,20 @@ Next.js 15 (App Router, React 19), tRPC v11, Prisma, PostgreSQL 16, TypeScript a
 MIT — free to use, self-host and modify. Built by **[Morpheus Adam](https://github.com/morpheusadam)**, part of the [Lavzen](https://lavzen.com) ecosystem.
 
 <sub>Solova is an open-source, self-hosted freelance project management app and Trello / Jira alternative with a built-in freelancer CRM (companies and contacts), contracts, invoicing, time tracking and double-entry accounting. Keywords: self-hosted project management, open-source Trello alternative, Jira alternative for freelancers, freelance CRM software, self-hosted invoicing, double-entry accounting app, HoneyBook alternative, Bonsai alternative, Next.js tRPC Prisma PostgreSQL.</sub>
+
+
+---
+
+## ⭐ Star History
+
+<a href="https://star-history.com/#morpheusadam/Solova&Date">
+  <img src="https://api.star-history.com/svg?repos=morpheusadam/Solova&type=Date" alt="Solova — Star History Chart" width="70%" />
+</a>
+
+<div align="center">
+
+### If this project helps you, please give it a ⭐
+
+A star helps other developers discover **Solova** and supports continued development.
+
+</div>
