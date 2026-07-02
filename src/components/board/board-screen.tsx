@@ -4,6 +4,7 @@ import {
   Archive,
   Calendar as CalendarIcon,
   ChartPie,
+  Copy,
   Kanban as KanbanIcon,
   ListFilter,
   MoreHorizontal,
@@ -51,6 +52,9 @@ export function BoardScreen({ boardId }: { boardId: string }) {
   });
   const archiveBoard = api.board.archive.useMutation();
   const deleteBoard = api.board.delete.useMutation();
+  const saveBoardTemplate = api.board.saveAsTemplate.useMutation({
+    onSuccess: () => utils.board.templates.invalidate(),
+  });
   const { data: archivedCards } = api.card.archived.useQuery(boardId);
   const restoreCard = api.card.archive.useMutation({
     onSuccess: () =>
@@ -298,6 +302,18 @@ export function BoardScreen({ boardId }: { boardId: string }) {
                 </Popover>
               ) : null}
 
+              <DropdownMenuItem
+                onSelect={async () => {
+                  await saveBoardTemplate.mutateAsync({
+                    boardId: board.id,
+                    name: board.name,
+                  });
+                  toast.success(`Saved "${board.name}" as a board template`);
+                }}
+              >
+                <Copy aria-hidden className="size-4" />
+                Save as template
+              </DropdownMenuItem>
               <DropdownMenuItem
                 onSelect={async () => {
                   await archiveBoard.mutateAsync({ id: board.id, archived: true });

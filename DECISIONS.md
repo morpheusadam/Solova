@@ -36,3 +36,8 @@
 - **Uploads** stored on disk under `UPLOADS_DIR` (docker volume), served through an auth-checked route handler with sanitized names; native `<input type="date">` instead of a datepicker dependency.
 - **Heatmap** is a hand-rolled SVG (53 weeks × 7 days, Monday-start), 5 buckets scaled to the year's max, breakdown exposed via `<title>` for hover + screen readers.
 - **Automation UI** lives in Settings as enable/disable toggles over the seeded rules; the engine itself is data-driven so new rules are inserts, not code.
+
+## Follow-up pass
+- **Time page is NOT in the primary sidebar**: spec §2 says the sidebar exposes *exactly* seven sections, so `/time` hangs off the topbar timer widget instead — full parity without breaking the contract.
+- **Templates are authored by snapshotting real cards/boards** (Trello's own pattern) rather than a dedicated template editor; deletion lives in Settings.
+- **Migrations in Docker** run in a one-shot `migrate` compose service built from the image's `build` stage — the standalone runtime stays free of the Prisma CLI (whose pnpm-symlinked deps can't be cherry-picked).

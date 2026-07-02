@@ -15,6 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "~/components/ui/dropdown-menu";
 import { signOutAction } from "~/components/layout/actions";
+import { TimerWidget } from "~/components/time/timer-widget";
 
 function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -57,6 +58,7 @@ export function Topbar({
       <div className="hidden md:block" />
 
       <div className="flex items-center gap-1.5">
+        <TimerWidget />
         <ThemeToggle />
         <DropdownMenu>
           <DropdownMenuTrigger

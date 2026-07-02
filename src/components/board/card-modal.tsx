@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   CheckSquare,
   Clock,
+  Copy,
   MessageSquare,
   Paintbrush,
   Paperclip,
@@ -70,7 +71,9 @@ export function CardModal({
   const deleteChecklist = api.card.deleteChecklist.useMutation({ onSuccess: invalidate });
   const addItem = api.card.addChecklistItem.useMutation({ onSuccess: invalidate });
   const toggleItem = api.card.toggleChecklistItem.useMutation({ onSuccess: invalidate });
+  const setItemDue = api.card.setChecklistItemDueDate.useMutation({ onSuccess: invalidate });
   const deleteItem = api.card.deleteChecklistItem.useMutation({ onSuccess: invalidate });
+  const saveTemplate = api.card.saveAsTemplate.useMutation({ onSuccess: invalidate });
   const convertItem = api.card.convertItemToCard.useMutation({ onSuccess: invalidate });
   const addComment = api.card.addComment.useMutation({ onSuccess: invalidate });
   const deleteComment = api.card.deleteComment.useMutation({ onSuccess: invalidate });
@@ -312,6 +315,28 @@ export function CardModal({
                             >
                               {item.text}
                             </span>
+                            <Input
+                              type="date"
+                              aria-label={`Due date for "${item.text}"`}
+                              value={
+                                item.dueDate
+                                  ? new Date(item.dueDate).toISOString().slice(0, 10)
+                                  : ""
+                              }
+                              onChange={(e) =>
+                                setItemDue.mutate({
+                                  id: item.id,
+                                  dueDate: e.target.value ? new Date(e.target.value) : null,
+                                })
+                              }
+                              className={cn(
+                                "hidden h-7 w-34 shrink-0 text-sm sm:block",
+                                item.dueDate &&
+                                  !item.isChecked &&
+                                  new Date(item.dueDate) < new Date() &&
+                                  "border-[var(--fg-danger)] text-ink-danger",
+                              )}
+                            />
                             <Button
                               variant="ghost"
                               size="iconSm"
@@ -603,6 +628,19 @@ export function CardModal({
                 <p className="pt-3 text-xs font-semibold tracking-wide text-ink-subtle uppercase">
                   Actions
                 </p>
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  className="w-full justify-start"
+                  loading={saveTemplate.isPending}
+                  onClick={async () => {
+                    await saveTemplate.mutateAsync({ cardId: card.id, name: card.title });
+                    toast.success(`Saved "${card.title}" as a card template`);
+                  }}
+                >
+                  <Copy aria-hidden />
+                  Save as template
+                </Button>
                 <Button
                   variant="secondary"
                   size="sm"

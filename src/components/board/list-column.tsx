@@ -1,7 +1,7 @@
 "use client";
 
 import { Draggable, Droppable } from "@hello-pangea/dnd";
-import { MoreHorizontal, Plus, X } from "lucide-react";
+import { LayoutTemplate, MoreHorizontal, Plus, X } from "lucide-react";
 import { useState } from "react";
 
 import { CardItem, type BoardData } from "~/components/board/card-item";
@@ -27,18 +27,43 @@ function QuickAddCard({ listId }: { listId: string }) {
   const create = api.card.create.useMutation({
     onSuccess: () => utils.board.byId.invalidate(),
   });
+  const { data: templates } = api.card.cardTemplates.useQuery();
+  const fromTemplate = api.card.fromTemplate.useMutation({
+    onSuccess: () => utils.board.byId.invalidate(),
+  });
 
   if (!open) {
     return (
-      <Button
-        variant="ghost"
-        size="sm"
-        className="w-full justify-start"
-        onClick={() => setOpen(true)}
-      >
-        <Plus aria-hidden />
-        Add a card
-      </Button>
+      <div className="flex items-center gap-1">
+        <Button
+          variant="ghost"
+          size="sm"
+          className="flex-1 justify-start"
+          onClick={() => setOpen(true)}
+        >
+          <Plus aria-hidden />
+          Add a card
+        </Button>
+        {templates?.length ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="iconSm" aria-label="Add card from template">
+                <LayoutTemplate aria-hidden />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              {templates.map((t) => (
+                <DropdownMenuItem
+                  key={t.id}
+                  onSelect={() => fromTemplate.mutate({ templateId: t.id, listId })}
+                >
+                  {t.name}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : null}
+      </div>
     );
   }
 
