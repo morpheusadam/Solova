@@ -1,7 +1,7 @@
 "use client";
 
 import { Building2, Plus, Search } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { CompanyFormDialog } from "~/components/company/company-form";
@@ -31,6 +31,7 @@ const BILLING_SHORT: Record<string, string> = {
 };
 
 export function CompaniesView() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<string>("ALL");
   const [createOpen, setCreateOpen] = useState(false);
@@ -83,11 +84,7 @@ export function CompaniesView() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-36" />
-          ))}
-        </div>
+        <Skeleton className="h-80" />
       ) : !companies?.length ? (
         <EmptyState
           icon={Building2}
@@ -101,65 +98,63 @@ export function CompaniesView() {
           }
         />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {companies.map((company) => (
-            <li key={company.id}>
-              <Link
-                href={`/companies/${company.id}`}
-                className="raised-card block p-4"
-                aria-label={`Open company ${company.name}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2.5">
-                    <Avatar name={company.name} src={company.logoUrl} size={36} />
-                    <div>
-                      <p className="font-semibold text-ink">{company.name}</p>
-                      <p className="text-sm text-ink-subtle">
-                        {BILLING_SHORT[company.billingModel]}
-                        {company.defaultRateMinor ? (
-                          <>
-                            {" · "}
-                            <MoneyText
-                              minor={company.defaultRateMinor}
-                              currency={company.currencyCode}
-                            />
-                          </>
-                        ) : null}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge
-                    variant={
-                      company.status === "ACTIVE"
-                        ? "success"
-                        : company.status === "PAUSED"
-                          ? "warning"
-                          : "neutral"
-                    }
-                  >
-                    {company.status.toLowerCase()}
-                  </Badge>
-                </div>
-                <dl className="mt-4 grid grid-cols-3 gap-2 text-center">
-                  <div className="glass-chip !rounded-sm px-1 py-1.5">
-                    <dt className="text-xs text-ink-subtle">Open tasks</dt>
-                    <dd className="font-semibold text-ink">{company.openTasks}</dd>
-                  </div>
-                  <div className="glass-chip !rounded-sm px-1 py-1.5">
-                    <dt className="text-xs text-ink-subtle">Boards</dt>
-                    <dd className="font-semibold text-ink">{company._count.boards}</dd>
-                  </div>
-                  <div className="glass-chip !rounded-sm px-1 py-1.5">
-                    <dt className="text-xs text-ink-subtle">Unpaid</dt>
-                    <dd className="font-semibold text-ink">
-                      <MoneyText minor={company.unpaidMinor} currency={company.currencyCode} />
-                    </dd>
-                  </div>
-                </dl>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="glass-card overflow-x-auto">
+          <table className="w-full min-w-[720px] text-md">
+            <thead>
+              <tr className="border-b border-line text-sm text-ink-subtle">
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Company</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Billing</th>
+                <th scope="col" className="px-4 py-2.5 text-end font-medium">Open tasks</th>
+                <th scope="col" className="px-4 py-2.5 text-end font-medium">Boards</th>
+                <th scope="col" className="px-4 py-2.5 text-end font-medium">Unpaid</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {companies.map((company) => (
+                <tr
+                  key={company.id}
+                  onClick={() => router.push(`/companies/${company.id}`)}
+                  className="cursor-pointer border-b border-line-glass-subtle transition-[background-color] duration-[var(--duration-fast)] hover:bg-surface-hover"
+                >
+                  <td className="px-4 py-2.5">
+                    <span className="flex items-center gap-2.5">
+                      <Avatar name={company.name} src={company.logoUrl} size={30} />
+                      <span className="font-medium text-ink">{company.name}</span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-secondary">
+                    {BILLING_SHORT[company.billingModel]}
+                    {company.defaultRateMinor ? (
+                      <>
+                        {" · "}
+                        <MoneyText minor={company.defaultRateMinor} currency={company.currencyCode} />
+                      </>
+                    ) : null}
+                  </td>
+                  <td className="px-4 py-2.5 text-end text-ink">{company.openTasks}</td>
+                  <td className="px-4 py-2.5 text-end text-ink">{company._count.boards}</td>
+                  <td className="px-4 py-2.5 text-end text-ink">
+                    <MoneyText minor={company.unpaidMinor} currency={company.currencyCode} />
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <Badge
+                      variant={
+                        company.status === "ACTIVE"
+                          ? "success"
+                          : company.status === "PAUSED"
+                            ? "warning"
+                            : "neutral"
+                      }
+                    >
+                      {company.status.toLowerCase()}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <CompanyFormDialog open={createOpen} onOpenChange={setCreateOpen} />

@@ -1,7 +1,7 @@
 "use client";
 
 import { FolderKanban, Plus, Search } from "lucide-react";
-import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { ProjectFavicon } from "~/components/project/project-favicon";
@@ -31,6 +31,7 @@ const STATUS_BADGE: Record<string, "success" | "warning" | "info" | "danger" | "
 };
 
 export function ProjectsView() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("ALL");
   const [createOpen, setCreateOpen] = useState(false);
@@ -83,11 +84,7 @@ export function ProjectsView() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-32" />
-          ))}
-        </div>
+        <Skeleton className="h-80" />
       ) : !projects?.length ? (
         <EmptyState
           icon={FolderKanban}
@@ -101,37 +98,49 @@ export function ProjectsView() {
           }
         />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {projects.map((project) => (
-            <li key={project.id}>
-              <Link
-                href={`/projects/${project.id}`}
-                className="raised-card block p-4"
-                aria-label={`Open project ${project.name}`}
-              >
-                <div className="flex items-start justify-between gap-2">
-                  <div className="flex items-center gap-2">
-                    <ProjectFavicon website={project.website} color={project.color} size={22} />
-                    <p className="font-semibold text-ink">{project.name}</p>
-                  </div>
-                  <Badge variant={STATUS_BADGE[project.status] ?? "neutral"}>
-                    {project.status.replace("_", " ").toLowerCase()}
-                  </Badge>
-                </div>
-                <p className="mt-1.5 text-sm text-ink-subtle">
-                  {project.company.name} · started{" "}
-                  {new Date(project.startDate).toLocaleDateString()}
-                  {project.dueDate
-                    ? ` · due ${new Date(project.dueDate).toLocaleDateString()}`
-                    : ""}
-                </p>
-                <p className="mt-2 text-sm text-ink-secondary">
-                  {project._count.boards} boards · {project._count.notes} notes
-                </p>
-              </Link>
-            </li>
-          ))}
-        </ul>
+        <div className="glass-card overflow-x-auto">
+          <table className="w-full min-w-[720px] text-md">
+            <thead>
+              <tr className="border-b border-line text-sm text-ink-subtle">
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Project</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Company</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Started</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Due</th>
+                <th scope="col" className="px-4 py-2.5 text-end font-medium">Boards</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {projects.map((project) => (
+                <tr
+                  key={project.id}
+                  onClick={() => router.push(`/projects/${project.id}`)}
+                  className="cursor-pointer border-b border-line-glass-subtle transition-[background-color] duration-[var(--duration-fast)] hover:bg-surface-hover"
+                >
+                  <td className="px-4 py-2.5">
+                    <span className="flex items-center gap-2">
+                      <ProjectFavicon website={project.website} color={project.color} size={20} />
+                      <span className="font-medium text-ink">{project.name}</span>
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-secondary">{project.company.name}</td>
+                  <td className="px-4 py-2.5 text-ink-secondary">
+                    {new Date(project.startDate).toLocaleDateString()}
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-secondary">
+                    {project.dueDate ? new Date(project.dueDate).toLocaleDateString() : "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-end text-ink">{project._count.boards}</td>
+                  <td className="px-4 py-2.5">
+                    <Badge variant={STATUS_BADGE[project.status] ?? "neutral"}>
+                      {project.status.replace("_", " ").toLowerCase()}
+                    </Badge>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <ProjectFormDialog open={createOpen} onOpenChange={setCreateOpen} />
