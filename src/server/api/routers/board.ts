@@ -11,11 +11,20 @@ const DEFAULT_LISTS = ["To Do", "Doing", "Done"];
 
 export const boardRouter = createTRPCRouter({
   list: protectedProcedure
-    .input(z.object({ companyId: uuid.optional(), includeArchived: z.boolean().default(false) }).optional())
+    .input(
+      z
+        .object({
+          companyId: uuid.optional(),
+          projectId: uuid.optional(),
+          includeArchived: z.boolean().default(false),
+        })
+        .optional(),
+    )
     .query(({ ctx, input }) =>
       ctx.db.board.findMany({
         where: {
           companyId: input?.companyId,
+          projectId: input?.projectId,
           archivedAt: input?.includeArchived ? undefined : null,
         },
         orderBy: { position: "asc" },

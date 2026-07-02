@@ -10,6 +10,7 @@
 import argon2 from "argon2";
 import { subDays, subMonths } from "date-fns";
 
+import { BOARD_TEMPLATES } from "./board-templates";
 import { db } from "~/server/db";
 import { logCardActivity } from "~/server/services/activity";
 import { ensureDefaultChartOfAccounts } from "~/server/services/accounting/chart-of-accounts";
@@ -54,11 +55,10 @@ async function main() {
   await ensureDefaultChartOfAccounts(db);
 
   // ── templates & automation (idempotent by name) ──────────────────────────
-  const boardTemplate = { lists: ["To Do", "Doing", "Done"] };
-  if (!(await db.boardTemplate.findFirst({ where: { name: "Kanban Basic" } }))) {
-    await db.boardTemplate.create({
-      data: { name: "Kanban Basic", payload: boardTemplate },
-    });
+  for (const t of BOARD_TEMPLATES) {
+    if (!(await db.boardTemplate.findFirst({ where: { name: t.name } }))) {
+      await db.boardTemplate.create({ data: { name: t.name, payload: t.payload } });
+    }
   }
   if (!(await db.cardTemplate.findFirst({ where: { name: "Bug Report" } }))) {
     await db.cardTemplate.create({
