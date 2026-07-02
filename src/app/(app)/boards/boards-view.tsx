@@ -5,22 +5,34 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { boardBackgroundCss } from "~/components/board/backgrounds";
-import { BoardFormDialog } from "~/components/board/board-form";
+import { NewBoardDialog } from "~/components/board/new-board-dialog";
 import { PageHeader } from "~/components/shared/page-header";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "~/components/ui/select";
 import { Skeleton } from "~/components/ui/skeleton";
 import { api } from "~/trpc/react";
 
 export function BoardsView() {
   const [createOpen, setCreateOpen] = useState(false);
-  const { data: boards, isLoading } = api.board.list.useQuery({});
+  const [projectId, setProjectId] = useState("ALL");
+
+  const { data: projects } = api.project.list.useQuery();
+  const { data: boards, isLoading } = api.board.list.useQuery({
+    projectId: projectId === "ALL" ? undefined : projectId,
+  });
 
   return (
     <>
       <PageHeader
         title="Boards"
-        description="Kanban boards across all companies."
+        description="Kanban boards, grouped by project."
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus aria-hidden />
@@ -28,6 +40,23 @@ export function BoardsView() {
           </Button>
         }
       />
+
+      {/* filter by project */}
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <Select value={projectId} onValueChange={setProjectId}>
+          <SelectTrigger aria-label="Filter boards by project" className="w-64">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All projects</SelectItem>
+            {projects?.map((p) => (
+              <SelectItem key={p.id} value={p.id}>
+                {p.name} · {p.company.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {isLoading ? (
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -38,8 +67,8 @@ export function BoardsView() {
       ) : !boards?.length ? (
         <EmptyState
           icon={SquareKanban}
-          title="Create your first board"
-          description="Boards hold lists and cards — your day-to-day work, Trello style."
+          title={projectId === "ALL" ? "Create your first board" : "No boards in this project"}
+          description="Boards hold lists and cards — start blank or from a template."
           action={
             <Button onClick={() => setCreateOpen(true)}>
               <Plus aria-hidden />
@@ -61,13 +90,13 @@ export function BoardsView() {
                   className="h-14"
                   style={{
                     background:
-                      boardBackgroundCss(board.background) ??
-                      "var(--canvas-gradient)",
+                      boardBackgroundCss(board.background) ?? "var(--canvas-gradient)",
                   }}
                 />
                 <div className="p-3.5">
                   <p className="font-semibold text-ink">{board.name}</p>
                   <p className="mt-0.5 text-sm text-ink-subtle">
+                    {board.project ? `${board.project.name} · ` : ""}
                     {board.company.name} · {board._count.cards} cards
                   </p>
                 </div>
@@ -77,7 +106,11 @@ export function BoardsView() {
         </ul>
       )}
 
-      <BoardFormDialog open={createOpen} onOpenChange={setCreateOpen} />
+      <NewBoardDialog
+        open={createOpen}
+        onOpenChange={setCreateOpen}
+        defaultProjectId={projectId === "ALL" ? undefined : projectId}
+      />
     </>
   );
 }

@@ -99,7 +99,7 @@ export function BoardScreen({ boardId }: { boardId: string }) {
   const backgroundCss = boardBackgroundCss(board.background);
 
   return (
-    <div className="relative -m-4 min-h-[calc(100dvh-3.5rem)] p-4 md:-m-6 md:p-6">
+    <div className="relative -m-4 flex h-[calc(100dvh-3.5rem)] flex-col overflow-hidden p-4 pb-20 md:-m-6 md:p-6 md:pb-6">
       {backgroundCss ? (
         <div
           aria-hidden
@@ -108,9 +108,9 @@ export function BoardScreen({ boardId }: { boardId: string }) {
         />
       ) : null}
 
-      <Tabs defaultValue="board" className="flex h-full flex-col">
+      <Tabs defaultValue="board" className="flex min-h-0 flex-1 flex-col">
         {/* board header */}
-        <div className="glass-card mb-4 flex flex-wrap items-center gap-2 !rounded-lg px-3 py-2">
+        <div className="glass-card mb-3 flex shrink-0 flex-wrap items-center gap-2 !rounded-lg px-3 py-2">
           <div className="min-w-0 flex-1">
             <Input
               aria-label="Board name"
@@ -142,25 +142,6 @@ export function BoardScreen({ boardId }: { boardId: string }) {
               ) : null}
             </p>
           </div>
-
-          <TabsList aria-label="Board views">
-            <TabsTrigger value="board">
-              <KanbanIcon aria-hidden className="me-1.5 size-4" />
-              Board
-            </TabsTrigger>
-            <TabsTrigger value="calendar">
-              <CalendarIcon aria-hidden className="me-1.5 size-4" />
-              Calendar
-            </TabsTrigger>
-            <TabsTrigger value="table">
-              <TableIcon aria-hidden className="me-1.5 size-4" />
-              Table
-            </TabsTrigger>
-            <TabsTrigger value="stats">
-              <ChartPie aria-hidden className="me-1.5 size-4" />
-              Stats
-            </TabsTrigger>
-          </TabsList>
 
           {/* filter */}
           <Popover>
@@ -320,22 +301,48 @@ export function BoardScreen({ boardId }: { boardId: string }) {
           </DropdownMenu>
         </div>
 
-        <TabsContent value="board" className="min-h-0 flex-1">
-          <Kanban
-            board={filteredBoard}
-            onOpenCard={setOpenCardId}
-            dragDisabled={filtersActive}
-          />
-        </TabsContent>
-        <TabsContent value="calendar">
-          <BoardCalendar board={filteredBoard} onOpenCard={setOpenCardId} />
-        </TabsContent>
-        <TabsContent value="table">
-          <BoardTable board={filteredBoard} onOpenCard={setOpenCardId} />
-        </TabsContent>
-        <TabsContent value="stats">
-          <BoardStats boardId={board.id} />
-        </TabsContent>
+        {/* content area — fills the space; the board's horizontal scrollbar
+            sits at its bottom, right above the footer bar */}
+        <div className="min-h-0 flex-1">
+          <TabsContent value="board" className="h-full data-[state=inactive]:hidden">
+            <Kanban
+              board={filteredBoard}
+              onOpenCard={setOpenCardId}
+              dragDisabled={filtersActive}
+            />
+          </TabsContent>
+          <TabsContent value="calendar" className="h-full overflow-y-auto">
+            <BoardCalendar board={filteredBoard} onOpenCard={setOpenCardId} />
+          </TabsContent>
+          <TabsContent value="table" className="h-full overflow-y-auto">
+            <BoardTable board={filteredBoard} onOpenCard={setOpenCardId} />
+          </TabsContent>
+          <TabsContent value="stats" className="h-full overflow-y-auto">
+            <BoardStats boardId={board.id} />
+          </TabsContent>
+        </div>
+
+        {/* footer — sticky view switcher (Board / Calendar / Table / Stats) */}
+        <div className="glass-card mt-3 flex shrink-0 items-center justify-center !rounded-lg px-2 py-1.5">
+          <TabsList aria-label="Board views">
+            <TabsTrigger value="board">
+              <KanbanIcon aria-hidden className="me-1.5 size-4" />
+              Board
+            </TabsTrigger>
+            <TabsTrigger value="calendar">
+              <CalendarIcon aria-hidden className="me-1.5 size-4" />
+              Calendar
+            </TabsTrigger>
+            <TabsTrigger value="table">
+              <TableIcon aria-hidden className="me-1.5 size-4" />
+              Table
+            </TabsTrigger>
+            <TabsTrigger value="stats">
+              <ChartPie aria-hidden className="me-1.5 size-4" />
+              Stats
+            </TabsTrigger>
+          </TabsList>
+        </div>
       </Tabs>
 
       <CardModal cardId={openCardId} onClose={() => setOpenCardId(null)} />
