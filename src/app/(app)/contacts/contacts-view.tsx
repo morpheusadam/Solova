@@ -1,12 +1,14 @@
 "use client";
 
-import { Contact as ContactIcon, Plus, Search } from "lucide-react";
+import { Contact as ContactIcon, Pencil, Plus, Search, Trash2 } from "lucide-react";
 import { useState } from "react";
 
-import { ContactCard, type ContactData } from "~/components/contact/contact-card";
+import { type ContactData } from "~/components/contact/contact-card";
 import { ContactFormDialog } from "~/components/contact/contact-form";
 import { ConfirmDialog } from "~/components/shared/confirm-dialog";
 import { PageHeader } from "~/components/shared/page-header";
+import { Avatar } from "~/components/ui/avatar";
+import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
 import { EmptyState } from "~/components/ui/empty-state";
 import { Input } from "~/components/ui/input";
@@ -82,11 +84,7 @@ export function ContactsView() {
       </div>
 
       {isLoading ? (
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <Skeleton key={i} className="h-48" />
-          ))}
-        </div>
+        <Skeleton className="h-80" />
       ) : !contacts?.length ? (
         <EmptyState
           icon={ContactIcon}
@@ -100,18 +98,85 @@ export function ContactsView() {
           }
         />
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-          {contacts.map((contact) => (
-            <li key={contact.id}>
-              <ContactCard
-                contact={contact}
-                showCompany
-                onEdit={() => setEditing(contact)}
-                onDelete={() => setDeleting(contact)}
-              />
-            </li>
-          ))}
-        </ul>
+        <div className="glass-card overflow-x-auto">
+          <table className="w-full min-w-[720px] text-md">
+            <thead>
+              <tr className="border-b border-line text-sm text-ink-subtle">
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Name</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Role</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Company</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Email</th>
+                <th scope="col" className="px-4 py-2.5 text-start font-medium">Phone</th>
+                <th scope="col" className="px-4 py-2.5 text-end font-medium">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {contacts.map((contact) => (
+                <tr
+                  key={contact.id}
+                  onClick={() => setEditing(contact)}
+                  className="cursor-pointer border-b border-line-glass-subtle transition-[background-color] duration-[var(--duration-fast)] hover:bg-surface-hover"
+                >
+                  <td className="px-4 py-2.5">
+                    <span className="flex items-center gap-2.5">
+                      <Avatar name={contact.name} size={28} />
+                      <span className="font-medium text-ink">{contact.name}</span>
+                      {contact.isPrimary ? <Badge variant="brand">primary</Badge> : null}
+                    </span>
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-secondary">{contact.role ?? "—"}</td>
+                  <td className="px-4 py-2.5 text-ink-secondary">
+                    {contact.company?.name ?? "—"}
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-secondary">
+                    {contact.email ? (
+                      <a
+                        href={`mailto:${contact.email}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="hover:text-ink-link hover:underline"
+                      >
+                        {contact.email}
+                      </a>
+                    ) : (
+                      "—"
+                    )}
+                  </td>
+                  <td className="px-4 py-2.5 text-ink-secondary">
+                    {contact.phone ?? contact.mobile ?? "—"}
+                  </td>
+                  <td className="px-4 py-2.5">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="iconSm"
+                        aria-label={`Edit ${contact.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditing(contact);
+                        }}
+                      >
+                        <Pencil aria-hidden />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="iconSm"
+                        aria-label={`Delete ${contact.name}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setDeleting(contact);
+                        }}
+                      >
+                        <Trash2 aria-hidden />
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
 
       <ContactFormDialog open={createOpen} onOpenChange={setCreateOpen} />

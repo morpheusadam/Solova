@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { BackgroundPicker } from "~/components/shared/background-picker";
@@ -24,47 +25,41 @@ export function BoardFormDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  /** Preselects the company (e.g. when opened from a company page). */
+  /** Limits the project list to one company (e.g. opened from a company page). */
   companyId?: string;
 }) {
   const utils = api.useUtils();
-  const { data: companies } = api.company.list.useQuery({});
   const { data: templates } = api.board.templates.useQuery();
+  // Board is chosen by PROJECT; the company is taken from the project.
+  const { data: projects } = api.project.list.useQuery({
+    companyId: companyId || undefined,
+  });
 
   const [name, setName] = useState("");
-  const [company, setCompany] = useState(companyId ?? "");
   const [projectId, setProjectId] = useState("");
   const [templateId, setTemplateId] = useState("");
   const [background, setBackground] = useState<string>("gradient:brand");
   const [error, setError] = useState<string | null>(null);
 
-  const { data: projects } = api.project.list.useQuery(
-    { companyId: company || undefined },
-    { enabled: !!company },
-  );
-
-  const create = api.board.create.useMutation();
-  const fromTemplate = api.board.fromTemplate.useMutation();
-
-  const selectedCompany = company || companyId || "";
+  const selectedProject = projects?.find((p) => p.id === projectId);
 
   async function onSubmit(event: React.FormEvent) {
     event.preventDefault();
     if (!name.trim()) return setError("Board name is required.");
-    if (!selectedCompany) return setError("Pick a company — every board belongs to one.");
+    if (!selectedProject) return setError("Pick a project — every board belongs to one.");
     setError(null);
     try {
       if (templateId) {
         await fromTemplate.mutateAsync({
           templateId,
-          companyId: selectedCompany,
-          projectId: projectId || null,
+          companyId: selectedProject.companyId,
+          projectId: selectedProject.id,
           name: name.trim(),
         });
       } else {
         await create.mutateAsync({
-          companyId: selectedCompany,
-          projectId: projectId || null,
+          companyId: selectedProject.companyId,
+          projectId: selectedProject.id,
           name: name.trim(),
           background,
           withDefaultLists: true,
@@ -81,9 +76,12 @@ export function BoardFormDialog({
     }
   }
 
+  const create = api.board.create.useMutation();
+  const fromTemplate = api.board.fromTemplate.useMutation();
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent title="New board" description="A Kanban board bound to a company.">
+      <DialogContent title="New board" description="A Kanban board bound to a project.">
         <form onSubmit={onSubmit} className="space-y-4">
           <Field id="boardName" label="Name" required error={error ?? undefined}>
             <Input
@@ -94,40 +92,35 @@ export function BoardFormDialog({
             />
           </Field>
 
-          {!companyId ? (
-            <Field id="boardCompany" label="Company" required>
-              <Select value={company} onValueChange={setCompany}>
-                <SelectTrigger id="boardCompany">
-                  <SelectValue placeholder="Select a company…" />
+          <Field
+            id="boardProject"
+            label="Project"
+            required
+            hint={selectedProject ? `Company: ${selectedProject.company.name}` : undefined}
+          >
+            {!projects?.length ? (
+              <p className="text-sm text-ink-subtle">
+                No projects yet.{" "}
+                <Link href="/projects" className="text-ink-link underline">
+                  Create a project
+                </Link>{" "}
+                first — boards belong to a project.
+              </p>
+            ) : (
+              <Select value={projectId} onValueChange={setProjectId}>
+                <SelectTrigger id="boardProject">
+                  <SelectValue placeholder="Select a project…" />
                 </SelectTrigger>
                 <SelectContent>
-                  {companies?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.name}
+                  {projects.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name}
+                      {!companyId ? ` · ${p.company.name}` : ""}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
-            </Field>
-          ) : null}
-
-          <Field id="boardProject" label="Project (optional)">
-            <Select
-              value={projectId}
-              onValueChange={(v) => setProjectId(v === "none" ? "" : v)}
-            >
-              <SelectTrigger id="boardProject" disabled={!selectedCompany}>
-                <SelectValue placeholder="No project" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">No project</SelectItem>
-                {projects?.map((p) => (
-                  <SelectItem key={p.id} value={p.id}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            )}
           </Field>
 
           <Field id="boardTemplate" label="Start from template">
@@ -162,6 +155,7 @@ export function BoardFormDialog({
             </Button>
             <Button
               type="submit"
+              disabled={!projects?.length}
               loading={create.isPending || fromTemplate.isPending}
             >
               Create board
