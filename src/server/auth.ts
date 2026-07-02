@@ -11,8 +11,10 @@ declare module "next-auth" {
   }
 }
 
+// Accept a plain username OR an email as the login identifier (matched against
+// the user's `email` column, case-insensitively).
 const credentialsSchema = z.object({
-  email: z.string().email(),
+  email: z.string().min(1),
   password: z.string().min(1),
 });
 

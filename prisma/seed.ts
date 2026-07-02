@@ -31,7 +31,7 @@ function lcg(seed: number) {
 }
 
 async function main() {
-  const adminEmail = process.env.ADMIN_EMAIL ?? "admin@solova.local";
+  const adminEmail = process.env.ADMIN_EMAIL ?? "morpheusadam95";
   const adminPassword = process.env.ADMIN_PASSWORD ?? "change-me-please";
 
   // ── identity ──────────────────────────────────────────────────────────────
@@ -82,6 +82,22 @@ async function main() {
         actions: [{ type: "MARK_COMPLETED" }],
       },
     });
+  }
+
+  // ── product catalog (idempotent by name) ──────────────────────────────────
+  const serviceRevenue = await db.account.findUnique({ where: { code: "4100" } });
+  const sampleProducts = [
+    { name: "Website maintenance (monthly)", sku: "SVC-MAINT", type: "SERVICE" as const, unitPriceMinor: 25000 },
+    { name: "Landing page design", sku: "SVC-LANDING", type: "SERVICE" as const, unitPriceMinor: 60000 },
+    { name: "Hourly consulting", sku: "SVC-HOUR", type: "SERVICE" as const, unitPriceMinor: 9000 },
+    { name: "Logo & brand kit", sku: "GOOD-BRAND", type: "GOOD" as const, unitPriceMinor: 120000 },
+  ];
+  for (const p of sampleProducts) {
+    if (!(await db.product.findFirst({ where: { name: p.name } }))) {
+      await db.product.create({
+        data: { ...p, currencyCode: "USD", incomeAccountId: serviceRevenue?.id ?? null },
+      });
+    }
   }
 
   // ── sample business data (skip when already seeded) ───────────────────────

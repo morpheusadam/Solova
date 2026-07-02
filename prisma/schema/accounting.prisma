@@ -41,6 +41,7 @@ model Account {
 
   journalLines JournalLine[]
   expenses     Expense[]
+  products     Product[]
 
   @@index([type])
   @@map("accounts")
@@ -137,6 +138,7 @@ enum InvoiceLineSource {
   TIME_ENTRY
   TASK
   PROJECT
+  PRODUCT
 
   @@map("invoice_line_source")
 }

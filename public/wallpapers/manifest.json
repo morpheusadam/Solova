@@ -1,0 +1,146 @@
+[
+  {
+    "key": "wp-aurora",
+    "name": "aurora",
+    "style": "mesh",
+    "thumb": "#0079BF"
+  },
+  {
+    "key": "wp-ocean",
+    "name": "ocean",
+    "style": "waves",
+    "thumb": "#026AA7"
+  },
+  {
+    "key": "wp-dusk",
+    "name": "dusk",
+    "style": "dots",
+    "thumb": "#0C3953"
+  },
+  {
+    "key": "wp-sunset",
+    "name": "sunset",
+    "style": "diagonal",
+    "thumb": "#FF9F1A"
+  },
+  {
+    "key": "wp-forest",
+    "name": "forest",
+    "style": "rings",
+    "thumb": "#0C3953"
+  },
+  {
+    "key": "wp-berry",
+    "name": "berry",
+    "style": "aurora",
+    "thumb": "#8E2DE2"
+  },
+  {
+    "key": "wp-slate",
+    "name": "slate",
+    "style": "mesh",
+    "thumb": "#172B4D"
+  },
+  {
+    "key": "wp-mint",
+    "name": "mint",
+    "style": "waves",
+    "thumb": "#0B6E4F"
+  },
+  {
+    "key": "wp-ember",
+    "name": "ember",
+    "style": "dots",
+    "thumb": "#7A1F2B"
+  },
+  {
+    "key": "wp-indigo",
+    "name": "indigo",
+    "style": "diagonal",
+    "thumb": "#1A237E"
+  },
+  {
+    "key": "wp-peach",
+    "name": "peach",
+    "style": "rings",
+    "thumb": "#FF7E5F"
+  },
+  {
+    "key": "wp-teal",
+    "name": "teal",
+    "style": "aurora",
+    "thumb": "#0F2027"
+  },
+  {
+    "key": "wp-grape",
+    "name": "grape",
+    "style": "mesh",
+    "thumb": "#42275A"
+  },
+  {
+    "key": "wp-sky",
+    "name": "sky",
+    "style": "waves",
+    "thumb": "#2980B9"
+  },
+  {
+    "key": "wp-coral",
+    "name": "coral",
+    "style": "dots",
+    "thumb": "#FF5F6D"
+  },
+  {
+    "key": "wp-lagoon",
+    "name": "lagoon",
+    "style": "diagonal",
+    "thumb": "#43C6AC"
+  },
+  {
+    "key": "wp-plum",
+    "name": "plum",
+    "style": "rings",
+    "thumb": "#5F2C82"
+  },
+  {
+    "key": "wp-sand",
+    "name": "sand",
+    "style": "aurora",
+    "thumb": "#3E5151"
+  },
+  {
+    "key": "wp-rose",
+    "name": "rose",
+    "style": "mesh",
+    "thumb": "#B24592"
+  },
+  {
+    "key": "wp-steel",
+    "name": "steel",
+    "style": "waves",
+    "thumb": "#283048"
+  },
+  {
+    "key": "wp-lime",
+    "name": "lime",
+    "style": "dots",
+    "thumb": "#134E5E"
+  },
+  {
+    "key": "wp-magma",
+    "name": "magma",
+    "style": "diagonal",
+    "thumb": "#420516"
+  },
+  {
+    "key": "wp-twilight",
+    "name": "twilight",
+    "style": "rings",
+    "thumb": "#0F0C29"
+  },
+  {
+    "key": "wp-glacier",
+    "name": "glacier",
+    "style": "aurora",
+    "thumb": "#4CA1AF"
+  }
+]

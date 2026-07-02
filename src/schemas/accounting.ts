@@ -30,6 +30,8 @@ export const invoiceLineInput = z.object({
   description: z.string().min(1).max(500),
   quantity: z.number().positive().max(1_000_000),
   unitPriceMinor: moneyMinor,
+  /** Set when the line was added from the product catalog. */
+  productId: uuid.optional().nullable(),
 });
 
 export const invoiceInput = z.object({

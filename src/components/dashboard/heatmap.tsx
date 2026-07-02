@@ -1,11 +1,18 @@
 "use client";
 
 import { addDays, format, startOfWeek, subDays } from "date-fns";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 
 import { type RouterOutputs } from "~/trpc/react";
 
 type HeatmapDay = RouterOutputs["dashboard"]["heatmap"][number];
+
+interface TooltipState {
+  x: number;
+  y: number;
+  date: Date;
+  data?: HeatmapDay;
+}
 
 const CELL = 12;
 const GAP = 3;
@@ -47,6 +54,8 @@ export function Heatmap({ days }: { days: HeatmapDay[] }) {
     return { grid: weeks, monthLabels: labels, max: maxCount };
   }, [days]);
 
+  const [tip, setTip] = useState<TooltipState | null>(null);
+
   function bucket(count: number): number {
     if (count <= 0) return 0;
     return Math.min(4, Math.max(1, Math.ceil((count / max) * 4)));
@@ -56,7 +65,38 @@ export function Heatmap({ days }: { days: HeatmapDay[] }) {
   const height = TOP_GUTTER + 7 * (CELL + GAP);
 
   return (
-    <div className="overflow-x-auto" dir="ltr">
+    <div className="relative overflow-x-auto" dir="ltr">
+      {tip ? (
+        <div
+          role="status"
+          className="glass-modal pointer-events-none absolute z-[900] -translate-x-1/2 -translate-y-full !rounded-md px-3 py-2 text-sm whitespace-nowrap"
+          style={{ left: tip.x, top: tip.y - 8 }}
+        >
+          <p className="font-semibold text-ink">{format(tip.date, "EEE, MMM d, yyyy")}</p>
+          {tip.data && tip.data.count > 0 ? (
+            <ul className="mt-1 space-y-0.5 text-ink-secondary">
+              <li className="flex items-center justify-between gap-4">
+                <span>Activity</span>
+                <span className="font-medium text-ink">{tip.data.activity}</span>
+              </li>
+              <li className="flex items-center justify-between gap-4">
+                <span>Completed</span>
+                <span className="font-medium text-ink">{tip.data.completed}</span>
+              </li>
+              <li className="flex items-center justify-between gap-4">
+                <span>Time logged</span>
+                <span className="font-medium text-ink">
+                  {(tip.data.timeUnits * 30) >= 60
+                    ? `${Math.round((tip.data.timeUnits * 30) / 60)}h`
+                    : `${tip.data.timeUnits * 30}m`}
+                </span>
+              </li>
+            </ul>
+          ) : (
+            <p className="mt-0.5 text-ink-subtle">No activity</p>
+          )}
+        </div>
+      ) : null}
       <svg
         width={width}
         height={height + 20}
@@ -89,23 +129,24 @@ export function Heatmap({ days }: { days: HeatmapDay[] }) {
           column.map((cell, d) => {
             const data = cell.data;
             const level = bucket(data?.count ?? 0);
-            const label = `${format(cell.date, "PP")}: ${data?.count ?? 0} activity${
-              data
-                ? ` (${data.activity} actions, ${data.completed} completed, ${data.timeUnits * 30} min logged)`
-                : ""
-            }`;
+            const cx = LEFT_GUTTER + w * (CELL + GAP);
+            const cy = TOP_GUTTER + d * (CELL + GAP);
             return (
               <rect
                 key={cell.date.toISOString()}
-                x={LEFT_GUTTER + w * (CELL + GAP)}
-                y={TOP_GUTTER + d * (CELL + GAP)}
+                x={cx}
+                y={cy}
                 width={CELL}
                 height={CELL}
                 rx={3}
-                style={{ fill: `var(--heatmap-${level})` }}
-              >
-                <title>{label}</title>
-              </rect>
+                style={{ fill: `var(--heatmap-${level})`, cursor: "pointer" }}
+                stroke={tip?.date === cell.date ? "var(--fg-primary)" : "transparent"}
+                strokeWidth={1}
+                onMouseEnter={() =>
+                  setTip({ x: cx + CELL / 2, y: cy, date: cell.date, data })
+                }
+                onMouseLeave={() => setTip(null)}
+              />
             );
           }),
         )}

@@ -3,29 +3,35 @@
 import {
   Building2,
   Calculator,
+  Contact as ContactIcon,
   FolderKanban,
   LayoutDashboard,
-  ListTodo,
   Settings,
   SquareKanban,
+  StickyNote,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { cn } from "~/lib/utils";
+import { api } from "~/trpc/react";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/companies", label: "Companies", icon: Building2 },
+  { href: "/contacts", label: "Contacts", icon: ContactIcon },
   { href: "/projects", label: "Projects", icon: FolderKanban },
   { href: "/boards", label: "Boards", icon: SquareKanban },
   { href: "/accounting", label: "Accounting", icon: Calculator },
-  { href: "/tasks", label: "Tasks", icon: ListTodo },
+  { href: "/notes", label: "Notes", icon: StickyNote },
   { href: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { data: settings } = api.settings.get.useQuery(undefined, {
+    staleTime: 5 * 60_000,
+  });
 
   return (
     <nav
@@ -36,12 +42,21 @@ export function Sidebar() {
         href="/dashboard"
         className="mb-6 flex items-center gap-2.5 rounded-sm px-2 py-1.5"
       >
-        <span
-          aria-hidden
-          className="flex size-8 items-center justify-center rounded-sm bg-primary text-lg font-bold text-ink-onbrand"
-        >
-          F
-        </span>
+        {settings?.appLogoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={settings.appLogoUrl}
+            alt="Workspace logo"
+            className="size-8 rounded-sm object-contain"
+          />
+        ) : (
+          <span
+            aria-hidden
+            className="flex size-8 items-center justify-center rounded-sm bg-primary text-lg font-bold text-ink-onbrand"
+          >
+            F
+          </span>
+        )}
         <span className="text-lg font-semibold text-ink">FreelanceOS</span>
       </Link>
 

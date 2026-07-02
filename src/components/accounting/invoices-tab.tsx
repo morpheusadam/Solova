@@ -38,6 +38,7 @@ interface DraftLine {
   description: string;
   quantity: number;
   unitPrice: number;
+  productId?: string | null;
 }
 
 function InvoiceCreateDialog({
@@ -51,6 +52,7 @@ function InvoiceCreateDialog({
   const money = useMoney();
   const factor = minorUnitFactor(money.currency);
   const { data: companies } = api.company.list.useQuery({});
+  const { data: products } = api.product.list.useQuery({ activeOnly: true });
 
   const [companyId, setCompanyId] = useState("");
   const [issueDate, setIssueDate] = useState(new Date().toISOString().slice(0, 10));
@@ -78,6 +80,7 @@ function InvoiceCreateDialog({
           description: l.description.trim(),
           quantity: l.quantity,
           unitPriceMinor: Math.round(l.unitPrice * factor),
+          productId: l.productId ?? null,
         })),
       });
       toast.success("Draft invoice created");
@@ -184,17 +187,47 @@ function InvoiceCreateDialog({
                 </div>
               ))}
             </div>
-            <Button
-              variant="secondary"
-              size="sm"
-              className="mt-2"
-              onClick={() =>
-                setLines((ls) => [...ls, { description: "", quantity: 1, unitPrice: 0 }])
-              }
-            >
-              <Plus aria-hidden />
-              Add line
-            </Button>
+            <div className="mt-2 flex flex-wrap items-center gap-2">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() =>
+                  setLines((ls) => [...ls, { description: "", quantity: 1, unitPrice: 0 }])
+                }
+              >
+                <Plus aria-hidden />
+                Add line
+              </Button>
+              {products?.length ? (
+                <Select
+                  value=""
+                  onValueChange={(id) => {
+                    const p = products.find((x) => x.id === id);
+                    if (!p) return;
+                    setLines((ls) => [
+                      ...ls.filter((l) => l.description || l.unitPrice),
+                      {
+                        description: p.name,
+                        quantity: 1,
+                        unitPrice: p.unitPriceMinor / factor,
+                        productId: p.id,
+                      },
+                    ]);
+                  }}
+                >
+                  <SelectTrigger aria-label="Add a product" className="w-56">
+                    <SelectValue placeholder="+ Add from product…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((p) => (
+                      <SelectItem key={p.id} value={p.id}>
+                        {p.name} · {money.format(p.unitPriceMinor, p.currencyCode)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              ) : null}
+            </div>
           </fieldset>
 
           <p className="text-end text-lg font-semibold text-ink">
@@ -217,7 +250,11 @@ function InvoiceCreateDialog({
 
 export function InvoicesTab() {
   const utils = api.useUtils();
-  const { data: invoices, isLoading } = api.accounting.invoices.useQuery();
+  const [companyId, setCompanyId] = useState("ALL");
+  const { data: companies } = api.company.list.useQuery({});
+  const { data: invoices, isLoading } = api.accounting.invoices.useQuery({
+    companyId: companyId === "ALL" ? undefined : companyId,
+  });
   const post = api.accounting.postInvoice.useMutation({
     onSuccess: () => utils.accounting.invalidate(),
   });
@@ -234,7 +271,20 @@ export function InvoicesTab() {
 
   return (
     <>
-      <div className="mb-3 flex justify-end">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <Select value={companyId} onValueChange={setCompanyId}>
+          <SelectTrigger aria-label="Filter by company" className="w-56">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">All companies</SelectItem>
+            {companies?.map((c) => (
+              <SelectItem key={c.id} value={c.id}>
+                {c.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
         <Button onClick={() => setCreateOpen(true)}>
           <Plus aria-hidden />
           New invoice

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-import { BOARD_BACKGROUNDS } from "~/components/board/backgrounds";
+import { BackgroundPicker } from "~/components/shared/background-picker";
 import { Field } from "~/components/shared/field";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "~/components/ui/dialog";
@@ -15,7 +15,6 @@ import {
   SelectValue,
 } from "~/components/ui/select";
 import { toast } from "~/components/ui/toast";
-import { cn } from "~/lib/utils";
 import { api } from "~/trpc/react";
 
 export function BoardFormDialog({
@@ -154,22 +153,7 @@ export function BoardFormDialog({
             <legend className="mb-1.5 block text-sm font-medium text-ink-secondary">
               Background
             </legend>
-            <div className="grid grid-cols-6 gap-2">
-              {BOARD_BACKGROUNDS.map((bg) => (
-                <button
-                  key={bg.key}
-                  type="button"
-                  aria-label={`Background ${bg.key}`}
-                  aria-pressed={background === bg.key}
-                  onClick={() => setBackground(bg.key)}
-                  className={cn(
-                    "h-10 cursor-pointer rounded-sm",
-                    background === bg.key && "ring-2 ring-[var(--border-focus)] ring-offset-1",
-                  )}
-                  style={{ background: bg.css }}
-                />
-              ))}
-            </div>
+            <BackgroundPicker value={background} onSelect={(v) => setBackground(v ?? "wp-aurora")} />
           </fieldset>
 
           <DialogFooter>

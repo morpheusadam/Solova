@@ -2,8 +2,9 @@
 
 import { Download, Plus, X } from "lucide-react";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
+import { BackgroundPicker } from "~/components/shared/background-picker";
 import { Field } from "~/components/shared/field";
 import { PageHeader } from "~/components/shared/page-header";
 import { Badge } from "~/components/ui/badge";
@@ -50,6 +51,8 @@ export function SettingsView() {
 
   const [palette, setPalette] = useState<string[]>([]);
   const [newColor, setNewColor] = useState("#0079BF");
+  const [uploadingLogo, setUploadingLogo] = useState(false);
+  const logoInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (settings) setPalette(settings.labelPalette as string[]);
@@ -148,6 +151,70 @@ export function SettingsView() {
         {/* appearance + palette */}
         <section className="glass-card p-5" aria-label="Appearance">
           <h3 className="mb-4 font-semibold text-ink">Appearance</h3>
+
+          <div className="mb-4">
+            <p className="mb-1.5 text-sm font-medium text-ink-secondary">App logo</p>
+            <div className="flex items-center gap-3">
+              {settings.appLogoUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={settings.appLogoUrl}
+                  alt="App logo"
+                  className="size-12 rounded-sm border border-line-glass object-contain"
+                />
+              ) : (
+                <span className="flex size-12 items-center justify-center rounded-sm bg-primary text-xl font-bold text-ink-onbrand">
+                  F
+                </span>
+              )}
+              <div className="flex gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  loading={uploadingLogo}
+                  onClick={() => logoInputRef.current?.click()}
+                >
+                  Upload logo
+                </Button>
+                {settings.appLogoUrl ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => update.mutate({ appLogoUrl: null })}
+                  >
+                    Remove
+                  </Button>
+                ) : null}
+              </div>
+              <input
+                ref={logoInputRef}
+                type="file"
+                accept="image/*"
+                className="sr-only"
+                aria-label="Upload app logo"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  setUploadingLogo(true);
+                  try {
+                    const body = new FormData();
+                    body.append("file", file);
+                    const res = await fetch("/api/uploads", { method: "POST", body });
+                    if (!res.ok) throw new Error("Upload failed");
+                    const json = (await res.json()) as { url: string };
+                    await update.mutateAsync({ appLogoUrl: json.url });
+                    toast.success("Logo updated");
+                  } catch (err) {
+                    toast.error(err instanceof Error ? err.message : "Upload failed");
+                  } finally {
+                    setUploadingLogo(false);
+                  }
+                }}
+              />
+            </div>
+          </div>
+
           <Field id="theme" label="Theme">
             <Select
               value={settings.theme}
@@ -215,6 +282,15 @@ export function SettingsView() {
           >
             Save palette
           </Button>
+
+          <h4 className="mt-5 mb-2 text-sm font-semibold text-ink-secondary">
+            App background
+          </h4>
+          <BackgroundPicker
+            value={settings.appBackground}
+            onSelect={(v) => update.mutate({ appBackground: v })}
+            showDefault
+          />
         </section>
 
         {/* automation */}

@@ -11,7 +11,12 @@ export default async function LoginPage() {
   if (session?.user) redirect("/dashboard");
 
   return (
-    <main className="flex min-h-dvh items-center justify-center p-4">
+    <main
+      className="flex min-h-dvh items-center justify-center p-4"
+      style={{
+        background: 'url("/wallpapers/wp-twilight.svg") center / cover no-repeat fixed',
+      }}
+    >
       <div className="glass-modal w-full max-w-sm p-8">
         <div className="mb-6 text-center">
           <span

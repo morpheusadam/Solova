@@ -1,0 +1,17 @@
+// ── Module: notes ── free-standing sticky notes (not tied to a card/board).
+// A lightweight personal scratchpad; `pinned` floats a note to the top,
+// `position` orders the rest, `color` drives the sticky paper tint.
+
+model Note {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title     String?
+  body      String   @default("")
+  color     String   @default("#F2D600")
+  pinned    Boolean  @default(false)
+  position  Float    @default(0)
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([pinned])
+  @@map("notes")
+}

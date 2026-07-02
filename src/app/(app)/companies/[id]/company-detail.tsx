@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Contact as ContactIcon,
   FileSignature,
   FolderKanban,
   Pencil,
@@ -15,6 +16,8 @@ import { useState } from "react";
 import { CompanyFormDialog } from "~/components/company/company-form";
 import { ContractFormDialog } from "~/components/company/contract-form";
 import { BoardFormDialog } from "~/components/board/board-form";
+import { ContactCard, type ContactData } from "~/components/contact/contact-card";
+import { ContactFormDialog } from "~/components/contact/contact-form";
 import { ConfirmDialog } from "~/components/shared/confirm-dialog";
 import { MoneyText } from "~/components/shared/money";
 import { PageHeader } from "~/components/shared/page-header";
@@ -42,18 +45,24 @@ export function CompanyDetail({ companyId }: { companyId: string }) {
 
   const { data: company, isLoading } = api.company.byId.useQuery(companyId);
   const { data: contracts } = api.contract.listByCompany.useQuery(companyId);
+  const { data: contacts } = api.contact.listByCompany.useQuery(companyId);
   const { data: boards } = api.board.list.useQuery({ companyId });
   const { data: projects } = api.project.list.useQuery({ companyId });
   const { data: finance } = api.company.financeSummary.useQuery(companyId);
   const { data: deletePreview } = api.company.deletePreview.useQuery(companyId);
 
   const deleteCompany = api.company.delete.useMutation();
+  const deleteContact = api.contact.delete.useMutation({
+    onSuccess: () => utils.contact.invalidate(),
+  });
 
   const [editOpen, setEditOpen] = useState(false);
   const [deleteOpen, setDeleteOpen] = useState(false);
   const [contractOpen, setContractOpen] = useState(false);
   const [boardOpen, setBoardOpen] = useState(false);
   const [editingContract, setEditingContract] = useState<string | null>(null);
+  const [contactCreateOpen, setContactCreateOpen] = useState(false);
+  const [editingContact, setEditingContact] = useState<ContactData | null>(null);
 
   if (isLoading || !company) {
     return <Skeleton className="h-96" />;
@@ -84,6 +93,7 @@ export function CompanyDetail({ companyId }: { companyId: string }) {
       <Tabs defaultValue="overview">
         <TabsList className="mb-4 max-w-full overflow-x-auto">
           <TabsTrigger value="overview">Overview</TabsTrigger>
+          <TabsTrigger value="contacts">Contacts</TabsTrigger>
           <TabsTrigger value="contracts">Contracts</TabsTrigger>
           <TabsTrigger value="boards">Boards</TabsTrigger>
           <TabsTrigger value="projects">Projects</TabsTrigger>
@@ -162,6 +172,35 @@ export function CompanyDetail({ companyId }: { companyId: string }) {
               </p>
             ) : null}
           </div>
+        </TabsContent>
+
+        {/* ── Contacts ── */}
+        <TabsContent value="contacts">
+          <div className="mb-3 flex justify-end">
+            <Button onClick={() => setContactCreateOpen(true)}>
+              <Plus aria-hidden />
+              New contact
+            </Button>
+          </div>
+          {!contacts?.length ? (
+            <EmptyState
+              icon={ContactIcon}
+              title="No contacts"
+              description="Add the people you deal with at this company."
+            />
+          ) : (
+            <ul className="grid gap-3 md:grid-cols-2">
+              {contacts.map((contact) => (
+                <li key={contact.id}>
+                  <ContactCard
+                    contact={contact}
+                    onEdit={() => setEditingContact(contact)}
+                    onDelete={() => deleteContact.mutate(contact.id)}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </TabsContent>
 
         {/* ── Contracts ── */}
@@ -421,6 +460,18 @@ export function CompanyDetail({ companyId }: { companyId: string }) {
         }
       />
       <BoardFormDialog open={boardOpen} onOpenChange={setBoardOpen} companyId={companyId} />
+
+      <ContactFormDialog
+        open={contactCreateOpen}
+        onOpenChange={setContactCreateOpen}
+        defaultCompanyId={companyId}
+      />
+      <ContactFormDialog
+        open={editingContact !== null}
+        onOpenChange={(o) => !o && setEditingContact(null)}
+        contact={editingContact}
+        defaultCompanyId={companyId}
+      />
 
       <ConfirmDialog
         open={deleteOpen}

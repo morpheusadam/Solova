@@ -14,6 +14,8 @@ export const settingsInput = z.object({
   invoicePrefix: z.string().min(1).max(12),
   labelPalette: z.array(hexColor).min(1).max(20),
   theme: z.enum(themes),
+  appBackground: z.string().max(60).nullable(),
+  appLogoUrl: z.string().max(500).nullable(),
 });
 
 export type SettingsInput = z.infer<typeof settingsInput>;

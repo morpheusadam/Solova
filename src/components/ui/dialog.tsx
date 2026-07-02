@@ -26,6 +26,27 @@ export const DialogContent = React.forwardRef<
     />
     <DialogPrimitive.Content
       ref={ref}
+      // Selects/popovers/dropdowns portal outside the dialog DOM, so a click on
+      // one registers as an "outside" interaction and would close the dialog.
+      // Ignore interactions that originate inside any Radix popper.
+      onPointerDownOutside={(event) => {
+        if (
+          (event.target as Element | null)?.closest(
+            "[data-radix-popper-content-wrapper],[data-radix-select-viewport]",
+          )
+        ) {
+          event.preventDefault();
+        }
+      }}
+      onInteractOutside={(event) => {
+        if (
+          (event.target as Element | null)?.closest(
+            "[data-radix-popper-content-wrapper],[data-radix-select-viewport]",
+          )
+        ) {
+          event.preventDefault();
+        }
+      }}
       className={cn(
         "glass-modal animate-modal-in fixed top-1/2 left-1/2 z-[700] max-h-[85dvh] w-[calc(100vw-32px)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto p-6",
         wide ? "max-w-3xl" : "max-w-lg",

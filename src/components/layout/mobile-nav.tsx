@@ -4,8 +4,8 @@ import {
   Building2,
   Calculator,
   LayoutDashboard,
-  ListTodo,
   SquareKanban,
+  StickyNote,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -16,7 +16,7 @@ import { cn } from "~/lib/utils";
 const NAV = [
   { href: "/dashboard", label: "Home", icon: LayoutDashboard },
   { href: "/boards", label: "Boards", icon: SquareKanban },
-  { href: "/tasks", label: "Tasks", icon: ListTodo },
+  { href: "/notes", label: "Notes", icon: StickyNote },
   { href: "/companies", label: "Clients", icon: Building2 },
   { href: "/accounting", label: "Money", icon: Calculator },
 ] as const;
