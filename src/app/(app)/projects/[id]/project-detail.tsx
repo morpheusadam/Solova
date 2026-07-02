@@ -320,6 +320,7 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
           dueDate: project.dueDate,
           status: project.status,
           color: project.color,
+          website: project.website,
           billingModel: project.billingModel,
           rateMinor: project.rateMinor != null ? Number(project.rateMinor) : null,
           currencyCode: project.currencyCode,

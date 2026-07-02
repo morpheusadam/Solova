@@ -164,6 +164,22 @@ export function ProjectFormDialog({
             </Select>
           </Field>
 
+          <div className="sm:col-span-2">
+            <Field
+              id="projectWebsite"
+              label="Website"
+              hint="We'll fetch its favicon and show it on the project."
+              error={errors.website?.message}
+            >
+              <Input
+                id="projectWebsite"
+                type="url"
+                placeholder="https://example.com"
+                {...form.register("website")}
+              />
+            </Field>
+          </div>
+
           <Field id="projectStart" label="Start date" required error={errors.startDate?.message as string}>
             <Input
               id="projectStart"

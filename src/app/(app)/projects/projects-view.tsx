@@ -4,6 +4,7 @@ import { FolderKanban, Plus, Search } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
+import { ProjectFavicon } from "~/components/project/project-favicon";
 import { ProjectFormDialog } from "~/components/project/project-form";
 import { PageHeader } from "~/components/shared/page-header";
 import { Badge } from "~/components/ui/badge";
@@ -110,11 +111,7 @@ export function ProjectsView() {
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-2">
-                    <span
-                      aria-hidden
-                      className="size-3 rounded-full"
-                      style={{ backgroundColor: project.color ?? "#8993A4" }}
-                    />
+                    <ProjectFavicon website={project.website} color={project.color} size={22} />
                     <p className="font-semibold text-ink">{project.name}</p>
                   </div>
                   <Badge variant={STATUS_BADGE[project.status] ?? "neutral"}>

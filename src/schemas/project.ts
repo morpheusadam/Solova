@@ -21,6 +21,7 @@ export const projectInput = z.object({
   dueDate: isoDate.optional().nullable(),
   status: z.enum(projectStatuses).default("PLANNING"),
   color: hexColor.optional().nullable(),
+  website: z.string().url().optional().nullable().or(z.literal("").transform(() => null)),
   // Per-project pricing (null = inherit the company defaults)
   billingModel: z.enum(billingModels).optional().nullable(),
   rateMinor: moneyMinor.optional().nullable(),
