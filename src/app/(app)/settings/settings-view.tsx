@@ -290,6 +290,7 @@ export function SettingsView() {
             value={settings.appBackground}
             onSelect={(v) => update.mutate({ appBackground: v })}
             showDefault
+            allowUpload
           />
         </section>
 

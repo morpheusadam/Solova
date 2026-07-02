@@ -1,8 +1,11 @@
 "use client";
 
-import { Check } from "lucide-react";
+import { Check, Upload } from "lucide-react";
+import { useRef, useState } from "react";
 
-import { GRADIENTS, SOLIDS, WALLPAPERS, swatchCss } from "~/lib/wallpapers";
+import { Button } from "~/components/ui/button";
+import { toast } from "~/components/ui/toast";
+import { GRADIENTS, PHOTOS, SOLIDS, WALLPAPERS, swatchCss } from "~/lib/wallpapers";
 import { cn } from "~/lib/utils";
 
 function Swatch({
@@ -41,14 +44,80 @@ export function BackgroundPicker({
   value,
   onSelect,
   showDefault,
+  allowUpload,
 }: {
   value: string | null | undefined;
   onSelect: (value: string | null) => void;
   /** Show a "Default" tile that clears the override (used for the app background). */
   showDefault?: boolean;
+  /** Show an "Upload image" button that stores a custom background. */
+  allowUpload?: boolean;
 }) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+  const customActive = Boolean(value?.startsWith("upload:"));
+
+  async function upload(file: File) {
+    setUploading(true);
+    try {
+      const body = new FormData();
+      body.append("file", file);
+      const res = await fetch("/api/uploads", { method: "POST", body });
+      if (!res.ok) throw new Error("Upload failed");
+      const json = (await res.json()) as { url: string };
+      onSelect(`upload:${json.url}`);
+      toast.success("Background uploaded");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  }
+
   return (
     <div className="space-y-3">
+      {allowUpload ? (
+        <div className="flex items-center gap-2">
+          <Button
+            variant="secondary"
+            size="sm"
+            loading={uploading}
+            onClick={() => fileRef.current?.click()}
+          >
+            <Upload aria-hidden />
+            Upload image
+          </Button>
+          {customActive ? (
+            <span
+              aria-hidden
+              className="inline-flex h-9 w-14 items-center justify-center rounded-sm ring-2 ring-[var(--border-focus)]"
+              style={{ background: swatchCss(value!) }}
+            />
+          ) : (
+            <span className="text-sm text-ink-subtle">Or pick one below</span>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            aria-label="Upload a background image"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              e.target.value = "";
+              if (file) void upload(file);
+            }}
+          />
+        </div>
+      ) : null}
+      <div>
+        <p className="mb-1.5 text-sm font-medium text-ink-secondary">Photos</p>
+        <div className="grid grid-cols-6 gap-2">
+          {PHOTOS.map((p) => (
+            <Swatch key={p} value={p} selected={value === p} onSelect={onSelect} />
+          ))}
+        </div>
+      </div>
       <div>
         <p className="mb-1.5 text-sm font-medium text-ink-secondary">Wallpapers</p>
         <div className="grid grid-cols-6 gap-2">

@@ -3,6 +3,7 @@
 import { AlignLeft, CheckSquare, Clock, MessageSquare, Paperclip } from "lucide-react";
 
 import { cn } from "~/lib/utils";
+import { coverBackground, isImageCover } from "~/lib/wallpapers";
 import { type RouterOutputs } from "~/trpc/react";
 
 export type BoardData = RouterOutputs["board"]["byId"];
@@ -38,8 +39,12 @@ export function CardItem({
         card.isCompleted && "opacity-70",
       )}
     >
-      {card.cover?.startsWith("color:") ? (
-        <div aria-hidden className="h-8" style={{ background: card.cover.slice(6) }} />
+      {card.cover ? (
+        <div
+          aria-hidden
+          className={isImageCover(card.cover) ? "h-24" : "h-8"}
+          style={{ background: coverBackground(card.cover) }}
+        />
       ) : null}
       <div className="flex flex-col gap-2 p-3">
         {card.labels.length > 0 ? (

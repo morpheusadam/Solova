@@ -14,7 +14,7 @@ export default async function LoginPage() {
     <main
       className="flex min-h-dvh items-center justify-center p-4"
       style={{
-        background: 'url("/wallpapers/wp-twilight.svg") center / cover no-repeat fixed',
+        background: 'url("/wallpapers-photos/ph-09.jpg") center / cover no-repeat fixed',
       }}
     >
       <div className="glass-modal w-full max-w-sm p-8">
