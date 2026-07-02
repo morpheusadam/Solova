@@ -85,22 +85,23 @@
 }
 
 .dark {
-  --canvas-gradient: linear-gradient(135deg, #0c3953 0%, #094c72 55%, #172b4d 100%);
-  --canvas-solid: #172b4d;
+  /* True black / neutral-dark glassmorphism (brand blue kept only for accents). */
+  --canvas-gradient: linear-gradient(135deg, #0a0a0b 0%, #101012 55%, #17181c 100%);
+  --canvas-solid: #0b0b0d;
 
-  --surface-glass: rgba(23, 43, 77, 0.6);
-  --surface-glass-strong: rgba(23, 43, 77, 0.7);
-  --surface-glass-subtle: rgba(23, 43, 77, 0.5);
-  --surface-glass-overlay: rgba(23, 43, 77, 0.8);
-  --surface-solid: #172b4d;
-  --surface-raised: rgba(23, 43, 77, 0.7);
-  --surface-hover: rgba(255, 255, 255, 0.15);
-  --surface-selected: rgba(0, 121, 191, 0.25);
+  --surface-glass: rgba(20, 21, 24, 0.62);
+  --surface-glass-strong: rgba(14, 15, 17, 0.74);
+  --surface-glass-subtle: rgba(30, 31, 35, 0.5);
+  --surface-glass-overlay: rgba(16, 17, 20, 0.82);
+  --surface-solid: #141518;
+  --surface-raised: rgba(28, 29, 33, 0.72);
+  --surface-hover: rgba(255, 255, 255, 0.08);
+  --surface-selected: rgba(41, 143, 202, 0.22);
 
-  --border-glass: rgba(255, 255, 255, 0.12);
-  --border-glass-subtle: rgba(255, 255, 255, 0.15);
-  --border-default: rgba(255, 255, 255, 0.15);
-  --border-strong: rgba(255, 255, 255, 0.25);
+  --border-glass: rgba(255, 255, 255, 0.1);
+  --border-glass-subtle: rgba(255, 255, 255, 0.08);
+  --border-default: rgba(255, 255, 255, 0.1);
+  --border-strong: rgba(255, 255, 255, 0.2);
   --border-focus: #5ba4cf;
 
   --fg-primary: #ffffff;

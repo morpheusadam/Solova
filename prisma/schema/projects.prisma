@@ -20,6 +20,7 @@ model Project {
   dueDate      DateTime?     @map("due_date") @db.Date
   status       ProjectStatus @default(PLANNING)
   color        String?
+  website      String?
   // Per-project pricing (overrides the company defaults when set).
   billingModel BillingModel? @map("billing_model")
   rateMinor    BigInt?       @map("rate_minor")

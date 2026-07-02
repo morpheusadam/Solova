@@ -32,7 +32,7 @@ model Settings {
   invoicePrefix   String   @default("INV-") @map("invoice_prefix")
   nextInvoiceSeq  Int      @default(1) @map("next_invoice_seq")
   labelPalette    Json     @default("[\"#61BD4F\",\"#F2D600\",\"#FF9F1A\",\"#EB5A46\",\"#C377E0\",\"#0079BF\",\"#00C2E0\",\"#51E898\",\"#FF78CB\",\"#344563\"]") @map("label_palette")
-  theme           Theme    @default(SYSTEM)
+  theme           Theme    @default(DARK)
   /// App-wide background: null = default token gradient; else a wallpaper key
   /// like "wp-aurora" or "gradient:ocean" (see components/wallpapers).
   appBackground   String?  @map("app_background")
