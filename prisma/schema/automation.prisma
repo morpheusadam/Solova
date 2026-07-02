@@ -11,18 +11,18 @@ enum AutomationTrigger {
 }
 
 model AutomationRule {
-  id        String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  name      String
-  isEnabled Boolean           @default(true) @map("is_enabled")
+  id         String            @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name       String
+  isEnabled  Boolean           @default(true) @map("is_enabled")
   /// null = applies to all boards
-  boardId   String?           @map("board_id") @db.Uuid
-  trigger   AutomationTrigger
+  boardId    String?           @map("board_id") @db.Uuid
+  trigger    AutomationTrigger
   /// e.g. { "listName": "Done" } — matched against the trigger context
-  conditions Json             @default("{}")
+  conditions Json              @default("{}")
   /// e.g. [{ "type": "MARK_COMPLETED" }, { "type": "ADD_LABEL", "labelName": "Overdue", "labelColor": "#EB5A46" }]
-  actions   Json              @default("[]")
-  createdAt DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
-  updatedAt DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+  actions    Json              @default("[]")
+  createdAt  DateTime          @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt  DateTime          @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   @@index([trigger])
   @@index([boardId])

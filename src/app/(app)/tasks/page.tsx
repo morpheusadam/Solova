@@ -1,9 +1,6 @@
-import { type Metadata } from "next";
+import { redirect } from "next/navigation";
 
-import { TasksView } from "./tasks-view";
-
-export const metadata: Metadata = { title: "Tasks" };
-
+// The global tasks table was replaced by the sticky Notes board.
 export default function TasksPage() {
-  return <TasksView />;
+  redirect("/notes");
 }

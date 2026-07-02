@@ -7,6 +7,7 @@ import { useState } from "react";
 
 import { ProjectFormDialog } from "~/components/project/project-form";
 import { ConfirmDialog } from "~/components/shared/confirm-dialog";
+import { MoneyText } from "~/components/shared/money";
 import { Field } from "~/components/shared/field";
 import { PageHeader } from "~/components/shared/page-header";
 import { Badge } from "~/components/ui/badge";
@@ -110,6 +111,20 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
         >
           {project.status.replace("_", " ").toLowerCase()}
         </Badge>
+        {project.billingModel ? (
+          <Badge variant="info">
+            {project.billingModel.replace(/_/g, " ").toLowerCase()}
+            {project.rateMinor ? (
+              <>
+                {" · "}
+                <MoneyText
+                  minor={Number(project.rateMinor)}
+                  currency={project.currencyCode}
+                />
+              </>
+            ) : null}
+          </Badge>
+        ) : null}
         {project.description ? (
           <p className="text-md text-ink-secondary">{project.description}</p>
         ) : null}
@@ -305,6 +320,9 @@ export function ProjectDetail({ projectId }: { projectId: string }) {
           dueDate: project.dueDate,
           status: project.status,
           color: project.color,
+          billingModel: project.billingModel,
+          rateMinor: project.rateMinor != null ? Number(project.rateMinor) : null,
+          currencyCode: project.currencyCode,
         }}
       />
 

@@ -17,12 +17,13 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 
-import { BOARD_BACKGROUNDS, boardBackgroundCss } from "~/components/board/backgrounds";
+import { boardBackgroundCss } from "~/components/board/backgrounds";
 import { BoardCalendar } from "~/components/board/board-calendar";
 import { BoardStats } from "~/components/board/board-stats";
 import { BoardTable } from "~/components/board/board-table";
 import { CardModal } from "~/components/board/card-modal";
 import { Kanban } from "~/components/board/kanban";
+import { BackgroundPicker } from "~/components/shared/background-picker";
 import { ConfirmDialog } from "~/components/shared/confirm-dialog";
 import { Badge } from "~/components/ui/badge";
 import { Button } from "~/components/ui/button";
@@ -252,25 +253,11 @@ export function BoardScreen({ boardId }: { boardId: string }) {
                     Change background
                   </DropdownMenuItem>
                 </PopoverTrigger>
-                <PopoverContent side="left" aria-label="Board background">
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {BOARD_BACKGROUNDS.map((bg) => (
-                      <button
-                        key={bg.key}
-                        type="button"
-                        aria-label={`Background ${bg.key}`}
-                        onClick={() =>
-                          update.mutate({ id: board.id, data: { background: bg.key } })
-                        }
-                        className={cn(
-                          "h-9 cursor-pointer rounded-sm",
-                          board.background === bg.key &&
-                            "ring-2 ring-[var(--border-focus)] ring-offset-1",
-                        )}
-                        style={{ background: bg.css }}
-                      />
-                    ))}
-                  </div>
+                <PopoverContent side="left" className="w-80" aria-label="Board background">
+                  <BackgroundPicker
+                    value={board.background}
+                    onSelect={(v) => update.mutate({ id: board.id, data: { background: v } })}
+                  />
                 </PopoverContent>
               </Popover>
 

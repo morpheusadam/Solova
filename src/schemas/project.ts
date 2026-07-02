@@ -1,6 +1,7 @@
 import { z } from "zod";
 
-import { hexColor, isoDate, uuid } from "./common";
+import { billingModels } from "./company";
+import { hexColor, isoDate, moneyMinor, uuid } from "./common";
 
 export const projectStatuses = [
   "PLANNING",
@@ -20,6 +21,10 @@ export const projectInput = z.object({
   dueDate: isoDate.optional().nullable(),
   status: z.enum(projectStatuses).default("PLANNING"),
   color: hexColor.optional().nullable(),
+  // Per-project pricing (null = inherit the company defaults)
+  billingModel: z.enum(billingModels).optional().nullable(),
+  rateMinor: moneyMinor.optional().nullable(),
+  currencyCode: z.string().length(3).optional().nullable(),
 });
 
 export const customFieldInput = z.object({

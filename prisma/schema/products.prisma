@@ -1,0 +1,32 @@
+// ── Module: products ── catalog of reusable goods & services that can be
+// dropped onto invoices as line items. Prices are BIGINT minor units.
+// Adding product-driven pricing elsewhere is additive: invoice lines link
+// back via InvoiceLineSource = PRODUCT + source_id.
+
+enum ProductType {
+  GOOD
+  SERVICE
+
+  @@map("product_type")
+}
+
+model Product {
+  id              String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sku             String?     @unique
+  name            String
+  description     String?
+  type            ProductType @default(SERVICE)
+  unitPriceMinor  BigInt      @default(0) @map("unit_price_minor")
+  currencyCode    String?     @map("currency_code") @db.Char(3)
+  /// Default VAT/tax rate applied when this product is added to an invoice.
+  taxRatePct      Decimal     @default(0) @map("tax_rate_pct") @db.Decimal(5, 2)
+  /// Optional revenue account this product's sales post to (nullable → default).
+  incomeAccountId String?     @map("income_account_id") @db.Uuid
+  incomeAccount   Account?    @relation(fields: [incomeAccountId], references: [id], onDelete: SetNull)
+  isActive        Boolean     @default(true) @map("is_active")
+  createdAt       DateTime    @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt       DateTime    @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([isActive])
+  @@map("products")
+}

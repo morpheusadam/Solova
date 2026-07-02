@@ -40,6 +40,7 @@ model Company {
   updatedAt        DateTime      @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
 
   contracts      Contract[]
+  contacts       Contact[]
   projects       Project[]
   boards         Board[]
   timeEntries    TimeEntry[]
@@ -50,6 +51,30 @@ model Company {
 
   @@index([status])
   @@map("companies")
+}
+
+/// People at a company. A company can have many contacts; deleting a company
+/// removes its contacts.
+model Contact {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  companyId String   @map("company_id") @db.Uuid
+  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  name      String
+  role      String?
+  email     String?
+  phone     String?
+  mobile    String?
+  whatsapp  String?
+  telegram  String?
+  website   String?
+  address   String?
+  notes     String?
+  isPrimary Boolean  @default(false) @map("is_primary")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz(6)
+  updatedAt DateTime @default(now()) @updatedAt @map("updated_at") @db.Timestamptz(6)
+
+  @@index([companyId])
+  @@map("contacts")
 }
 
 enum ContractBillingPeriod {

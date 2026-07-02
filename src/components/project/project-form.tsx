@@ -1,10 +1,12 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { type z } from "zod";
 
 import { Field } from "~/components/shared/field";
+import { useMoney } from "~/components/shared/money";
 import { Button } from "~/components/ui/button";
 import { Dialog, DialogContent, DialogFooter } from "~/components/ui/dialog";
 import { Input } from "~/components/ui/input";
@@ -17,11 +19,20 @@ import {
 } from "~/components/ui/select";
 import { Textarea } from "~/components/ui/textarea";
 import { toast } from "~/components/ui/toast";
+import { minorUnitFactor } from "~/lib/money";
 import { cn } from "~/lib/utils";
+import { billingModels } from "~/schemas/company";
 import { projectInput, projectStatuses } from "~/schemas/project";
 import { api } from "~/trpc/react";
 
 type FormValues = z.input<typeof projectInput>;
+
+const BILLING_LABEL: Record<(typeof billingModels)[number], string> = {
+  MONTHLY_RETAINER: "Monthly retainer",
+  PER_PROJECT: "Per project (fixed)",
+  PER_TASK: "Per task",
+  HOURLY: "Hourly",
+};
 
 const PROJECT_COLORS = [
   "#0079BF",
@@ -52,23 +63,37 @@ export function ProjectFormDialog({
   defaultCompanyId?: string;
 }) {
   const utils = api.useUtils();
+  const money = useMoney();
   const { data: companies } = api.company.list.useQuery({});
+
+  // Memoized so `new Date()` (create mode) doesn't change identity every render,
+  // which would make react-hook-form reset the form on each keystroke.
+  const defaults = useMemo<FormValues>(
+    () =>
+      project
+        ? { ...project }
+        : {
+            companyId: defaultCompanyId ?? "",
+            name: "",
+            startDate: new Date(),
+            status: "PLANNING",
+            color: PROJECT_COLORS[0],
+            billingModel: null,
+            rateMinor: null,
+          },
+    [project, defaultCompanyId],
+  );
 
   const form = useForm<FormValues>({
     resolver: zodResolver(projectInput),
-    values: project
-      ? { ...project }
-      : {
-          companyId: defaultCompanyId ?? "",
-          name: "",
-          startDate: new Date(),
-          status: "PLANNING",
-          color: PROJECT_COLORS[0],
-        },
+    values: defaults,
   });
 
   const create = api.project.create.useMutation();
   const update = api.project.update.useMutation();
+
+  const currency = money.currency;
+  const factor = minorUnitFactor(currency);
 
   async function onSubmit(values: FormValues) {
     try {
@@ -183,6 +208,48 @@ export function ProjectFormDialog({
               </div>
             </fieldset>
           </div>
+
+          <Field id="projectBilling" label="Billing model" hint="Leave to inherit the company's default.">
+            <Select
+              value={form.watch("billingModel") ?? "INHERIT"}
+              onValueChange={(v) =>
+                form.setValue(
+                  "billingModel",
+                  v === "INHERIT" ? null : (v as FormValues["billingModel"]),
+                )
+              }
+            >
+              <SelectTrigger id="projectBilling">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="INHERIT">Inherit from company</SelectItem>
+                {billingModels.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {BILLING_LABEL[m]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+          <Field
+            id="projectRate"
+            label={`Price / rate (${currency})`}
+            hint="Fixed price, hourly rate, or per-task amount."
+            error={errors.rateMinor?.message}
+          >
+            <Input
+              id="projectRate"
+              type="number"
+              min={0}
+              step={factor === 1 ? 1 : 0.01}
+              defaultValue={project?.rateMinor != null ? Number(project.rateMinor) / factor : undefined}
+              {...form.register("rateMinor", {
+                setValueAs: (v: string) =>
+                  v === "" || v == null ? null : Math.round(parseFloat(v) * factor),
+              })}
+            />
+          </Field>
 
           <div className="sm:col-span-2">
             <Field id="projectDescription" label="Description" error={errors.description?.message}>

@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 
+import { AppBackground } from "~/components/layout/app-background";
 import { Sidebar } from "~/components/layout/sidebar";
 import { Topbar } from "~/components/layout/topbar";
 import { MobileNav } from "~/components/layout/mobile-nav";
@@ -11,6 +12,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   return (
     <>
+      <AppBackground />
       <Sidebar />
       <Topbar
         userName={session.user.name ?? "Freelancer"}
