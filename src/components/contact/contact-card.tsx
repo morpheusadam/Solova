@@ -18,7 +18,7 @@ import { Button } from "~/components/ui/button";
 
 export interface ContactData {
   id: string;
-  companyId: string;
+  companyId: string | null;
   name: string;
   role?: string | null;
   email?: string | null;

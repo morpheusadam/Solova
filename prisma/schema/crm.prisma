@@ -57,8 +57,10 @@ model Company {
 /// removes its contacts.
 model Contact {
   id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  companyId String   @map("company_id") @db.Uuid
-  company   Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  // Optional — a contact may belong to a company (deleting the company removes it)
+  // or stand alone.
+  companyId String?  @map("company_id") @db.Uuid
+  company   Company? @relation(fields: [companyId], references: [id], onDelete: Cascade)
   name      String
   role      String?
   email     String?

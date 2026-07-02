@@ -43,7 +43,7 @@ export function ContactFormDialog({
     () =>
       contact
         ? { ...contact }
-        : { companyId: defaultCompanyId ?? "", name: "", isPrimary: false },
+        : { companyId: defaultCompanyId ?? null, name: "", isPrimary: false },
     [contact, defaultCompanyId],
   );
 
@@ -84,15 +84,16 @@ export function ContactFormDialog({
           <Field id="contactName" label="Name" required error={errors.name?.message}>
             <Input id="contactName" {...form.register("name")} placeholder="Jane Doe" />
           </Field>
-          <Field id="contactCompany" label="Company" required error={errors.companyId?.message}>
+          <Field id="contactCompany" label="Company" error={errors.companyId?.message}>
             <Select
-              value={form.watch("companyId")}
-              onValueChange={(v) => form.setValue("companyId", v)}
+              value={form.watch("companyId") ?? "NONE"}
+              onValueChange={(v) => form.setValue("companyId", v === "NONE" ? null : v)}
             >
               <SelectTrigger id="contactCompany" disabled={!!defaultCompanyId}>
-                <SelectValue placeholder="Select a company…" />
+                <SelectValue placeholder="No company" />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem value="NONE">No company</SelectItem>
                 {companies?.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.name}
